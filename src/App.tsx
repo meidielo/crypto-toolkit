@@ -1,121 +1,76 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from 'react';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { Sidebar } from '@/components/Sidebar';
+import { ECCalculator } from '@/components/pages/ECCalculator';
+import { RSACalculator } from '@/components/pages/RSACalculator';
+import { ModularArithmetic } from '@/components/pages/ModularArithmetic';
+import { BaseConverter } from '@/components/pages/BaseConverter';
+import { Factorization } from '@/components/pages/Factorization';
+import { CipherTools } from '@/components/pages/CipherTools';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
-function App() {
-  const [count, setCount] = useState(0)
+export type Page =
+  | 'ec-calculator'
+  | 'rsa'
+  | 'modular'
+  | 'converter'
+  | 'factorization'
+  | 'ciphers';
+
+const PAGE_COMPONENTS: Record<Page, React.FC> = {
+  'ec-calculator': ECCalculator,
+  rsa: RSACalculator,
+  modular: ModularArithmetic,
+  converter: BaseConverter,
+  factorization: Factorization,
+  ciphers: CipherTools,
+};
+
+const PAGE_TITLES: Record<Page, string> = {
+  'ec-calculator': 'Elliptic Curve Calculator',
+  rsa: 'RSA Key Generator',
+  modular: 'Modular Arithmetic',
+  converter: 'Base & Text Converter',
+  factorization: 'Integer Factorization',
+  ciphers: 'Cipher Tools',
+};
+
+export default function App() {
+  const [page, setPage] = useState<Page>('ec-calculator');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const PageComponent = PAGE_COMPONENTS[page];
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
+    <TooltipProvider>
+      <div className="flex h-screen overflow-hidden bg-background">
+        <Sidebar
+          currentPage={page}
+          onPageChange={setPage}
+          open={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+        />
+        <main className="flex-1 overflow-auto">
+          <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-background/80 backdrop-blur-sm px-6 py-3">
+            <div className="flex items-center gap-3">
+              {!sidebarOpen && (
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="p-1.5 rounded-md hover:bg-muted text-muted-foreground"
                 >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 12h18M3 6h18M3 18h18" />
+                  </svg>
+                </button>
+              )}
+              <h1 className="text-xl font-semibold tracking-tight">{PAGE_TITLES[page]}</h1>
+            </div>
+            <ThemeToggle />
+          </header>
+          <div className="p-6 max-w-6xl mx-auto">
+            <PageComponent />
+          </div>
+        </main>
+      </div>
+    </TooltipProvider>
+  );
 }
-
-export default App
