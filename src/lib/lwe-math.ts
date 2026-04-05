@@ -59,19 +59,21 @@ export function vecMatMul(r: number[], A: number[][], q: number): number[] {
   return result;
 }
 
-// Generate random integer in [0, q)
+// Cryptographically secure random integer in [0, q)
 function randMod(q: number): number {
-  return Math.floor(Math.random() * q);
+  const arr = new Uint32Array(1);
+  crypto.getRandomValues(arr);
+  return arr[0] % q;
 }
 
 // Generate small error value from {-1, 0, 1}
 function randError(): number {
-  return Math.floor(Math.random() * 3) - 1;
+  return randMod(3) - 1;
 }
 
 // Generate random binary value {0, 1}
 function randBit(): number {
-  return Math.random() < 0.5 ? 0 : 1;
+  return randMod(2);
 }
 
 // Key Generation

@@ -26,7 +26,8 @@ export function SecurityBanner() {
         <p className="text-xs text-amber-600/80 dark:text-amber-400/70 mt-0.5">
           This toolkit uses JavaScript BigInt arithmetic which is <strong>not constant-time</strong>.
           Real cryptographic implementations require constant-time operations to prevent side-channel
-          timing attacks. Random number generation uses <code className="text-[10px]">Math.random</code>, not a CSPRNG.
+          timing attacks. While this tool uses <code className="text-[10px]">crypto.getRandomValues()</code> (CSPRNG) for
+          randomness, the non-constant-time BigInt operations remain vulnerable to timing analysis.
           Never use this code for production cryptography.
         </p>
       </div>
