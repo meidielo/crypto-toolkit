@@ -80,6 +80,8 @@ export function ECDSAWorkflow() {
       setSetupError('Fill in all parameters'); return;
     }
     if (!isPrime(p)) { setSetupError('p must be prime'); return; }
+    if (q <= 2n) { setSetupError('q (curve order) must be > 2'); return; }
+    if (!isPrime(q)) { setSetupError('q (curve order) must be prime for ECDSA'); return; }
     const G: ECPoint = { x: gx, y: gy };
     if (!isOnCurve(G, A, B, p)) { setSetupError('G is not on the curve'); return; }
     try {

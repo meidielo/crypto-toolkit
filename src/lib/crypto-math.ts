@@ -162,7 +162,9 @@ export function generateRSAKeys(bits: number, e: bigint = 65537n): RSAKeyPair {
   const halfBits = Math.floor(bits / 2);
   let p: bigint, q: bigint, phi: bigint;
 
+  let attempts = 0;
   do {
+    if (++attempts > 100) throw new Error('RSA key generation failed after 100 attempts — try different parameters');
     p = generateRandomPrime(halfBits);
     q = generateRandomPrime(bits - halfBits);
     phi = (p - 1n) * (q - 1n);

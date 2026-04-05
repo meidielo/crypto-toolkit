@@ -76,10 +76,13 @@ export function ECCalculator() {
   const curveContradiction = useMemo(() => {
     if (!curveValid.valid || A === null || B === null || p === null) return null;
     const identified = identifyCurve(A, B, p);
-    const selectedPresetName = PRESET_CURVES[presetIdx]?.name || '';
-    // Check if manually-edited params match a DIFFERENT known curve than selected
-    if (identified && !selectedPresetName.includes(identified) && presetIdx >= 3) {
-      return { type: 'contradiction' as const, message: `These parameters define ${identified}, not ${selectedPresetName.split(' (')[0]}` };
+    const selectedPreset = PRESET_CURVES[presetIdx];
+    // Check if params match a DIFFERENT known curve than the selected preset
+    const presetMatches = selectedPreset &&
+      ((A % p + p) % p) === ((selectedPreset.A % selectedPreset.p + selectedPreset.p) % selectedPreset.p) &&
+      B === selectedPreset.B && p === selectedPreset.p;
+    if (identified && !presetMatches && presetIdx >= 3) {
+      return { type: 'contradiction' as const, message: `These parameters define ${identified}, not ${selectedPreset?.name.split(' (')[0]}` };
     }
     if (identified) return { type: 'identified' as const, message: `Standard curve: ${identified}` };
     if (presetIdx >= 3 && !identified) return { type: 'custom' as const, message: 'Custom parameters (not a recognized standard curve)' };

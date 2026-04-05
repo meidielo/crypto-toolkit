@@ -25,10 +25,11 @@ export function SecurityBanner() {
         <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">Educational Tool Only</p>
         <p className="text-xs text-amber-600/80 dark:text-amber-400/70 mt-0.5">
           This toolkit uses JavaScript BigInt arithmetic which is <strong>not constant-time</strong>.
-          Real cryptographic implementations require constant-time operations to prevent side-channel
-          timing attacks. While this tool uses <code className="text-[10px]">crypto.getRandomValues()</code> (CSPRNG) for
-          randomness, the non-constant-time BigInt operations remain vulnerable to timing analysis.
-          Never use this code for production cryptography.
+          Operations like <code className="text-[10px]">modPow</code>, <code className="text-[10px]">modInverse</code>,
+          and EC <code className="text-[10px]">scalarMultiply</code> have data-dependent branching that leaks
+          key bits via timing side-channels. A local attacker with <code className="text-[10px]">performance.now()</code> could
+          extract secret values. This tool uses <code className="text-[10px]">crypto.getRandomValues()</code> (CSPRNG)
+          for randomness. Never use this code for production cryptography.
         </p>
       </div>
       <button

@@ -90,30 +90,31 @@ export function ShiftRowsAnimation({ before, after }: ShiftRowsAnimationProps) {
               })
             )}
 
-            {/* Ghost cells: bytes wrapping from left to right */}
+            {/* Ghost cells: bytes wrapping from left edge to right side */}
             {[0, 1, 2, 3].map(row =>
               [0, 1, 2, 3].map(col => {
                 const shift = shifts[row];
                 if (shift === 0 || col >= shift) return null;
-                // This byte wraps: it starts at col, ends at (col - shift + 4) % 4
-                // Ghost starts off-screen right (at position 4 + col - shift relative)
-                const ghostStartCol = 4 + col;
+                // This byte exits left and should appear from the right.
+                // Final destination column = (col - shift + 4) % 4 = 4 - shift + col
+                // Ghost starts at destination + shift (off-screen right), translates left by shift
+                const destCol = (col - shift + 4) % 4;
                 return (
                   <div
                     key={`ghost-${row}-${col}`}
                     className={cn(
                       'absolute flex items-center justify-center font-mono font-bold text-xs rounded border',
                       'transition-all ease-in-out',
-                      animated
-                        ? 'bg-primary/20 border-primary/50 text-primary opacity-100'
-                        : 'opacity-0',
+                      'bg-primary/20 border-primary/50 text-primary',
                     )}
                     style={{
                       width: CELL,
                       height: CELL,
                       top: row * STEP + GAP,
-                      left: ghostStartCol * STEP + GAP,
-                      transform: animated ? `translateX(${-shift * STEP}px)` : 'translateX(0)',
+                      // Position at final destination, use transform to start off-screen
+                      left: destCol * STEP + GAP,
+                      transform: animated ? 'translateX(0)' : `translateX(${shift * STEP}px)`,
+                      opacity: animated ? 1 : 0,
                       transitionDuration: '500ms',
                       transitionProperty: 'transform, opacity',
                     }}

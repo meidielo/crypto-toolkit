@@ -208,9 +208,26 @@ export function aesRound(state: State, roundKey: State): AESRoundResult {
 
 // ============= Full AES-128 ECB (10 rounds) =============
 
+// Memoize keyExpansion to avoid recomputing for the same key
+const keyExpansionCache = new Map<string, State[]>();
+function cachedKeyExpansion(keyBytes: number[]): State[] {
+  const keyHex = keyBytes.map(b => b.toString(16).padStart(2, '0')).join('');
+  let cached = keyExpansionCache.get(keyHex);
+  if (!cached) {
+    cached = keyExpansion(keyBytes);
+    keyExpansionCache.set(keyHex, cached);
+    // Limit cache size to prevent memory leak
+    if (keyExpansionCache.size > 16) {
+      const firstKey = keyExpansionCache.keys().next().value;
+      if (firstKey !== undefined) keyExpansionCache.delete(firstKey);
+    }
+  }
+  return cached;
+}
+
 export function aesECB(block: number[], keyBytes: number[]): number[] {
   let state = hexToState(block.map(b => b.toString(16).padStart(2, '0')).join(''));
-  const roundKeys = keyExpansion(keyBytes);
+  const roundKeys = cachedKeyExpansion(keyBytes);
 
   // Initial round key addition
   state = addRoundKey(state, roundKeys[0]);

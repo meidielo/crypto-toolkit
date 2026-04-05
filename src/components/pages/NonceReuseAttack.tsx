@@ -104,6 +104,10 @@ export function NonceReuseAttack() {
     const { s: s2 } = sig2;
 
     try {
+      if (mod(s1 - s2, q) === 0n) {
+        setExtractError('s1 = s2 — the signatures are identical. Use different hash values (H1 ≠ H2) to demonstrate the attack.');
+        return;
+      }
       // k = (H1 - H2) / (s1 - s2) mod q
       const kRecovered = mod((h1 - h2) * modInverse(mod(s1 - s2, q), q), q);
 

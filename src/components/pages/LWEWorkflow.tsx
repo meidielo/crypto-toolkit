@@ -91,7 +91,7 @@ export function LWEWorkflow() {
       <StepCard step={1} title="Parameters" status={getStatus('setup')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">n (dimension, 2-8)</Label><Input value={nStr} onChange={e => setNStr(e.target.value)} className="font-mono" /></div>
-          <div><Label className="text-xs">q (modulus, prime)</Label><Input value={qStr} onChange={e => setQStr(e.target.value)} className="font-mono" /></div>
+          <div><Label className="text-xs">q (modulus)</Label><Input value={qStr} onChange={e => setQStr(e.target.value)} className="font-mono" /></div>
         </div>
         <p className="text-xs text-muted-foreground">Error distribution: small values from {'{-1, 0, 1}'}. In real ML-KEM, n=256 and q=3329.</p>
         <Button onClick={doKeygen} className="w-full">Generate Keys</Button>

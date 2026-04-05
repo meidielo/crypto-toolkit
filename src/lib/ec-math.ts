@@ -221,18 +221,26 @@ export function tonelliShanks(n: bigint, p: bigint): bigint | null {
   }
 
   let z = 2n;
-  while (modPow(z, (p - 1n) / 2n, p) !== p - 1n) z++;
+  let zAttempts = 0;
+  while (modPow(z, (p - 1n) / 2n, p) !== p - 1n) {
+    if (++zAttempts > 1000) throw new Error('tonelliShanks: failed to find quadratic non-residue (is p prime?)');
+    z++;
+  }
 
   let m = s;
   let c = modPow(z, q, p);
   let t = modPow(n, q, p);
   let r = modPow(n, (q + 1n) / 2n, p);
 
+  let steps = 0;
   while (true) {
+    if (++steps > 1000) throw new Error('tonelliShanks: exceeded 1000 iterations (is p prime?)');
     if (t === 1n) return r;
     let i = 1n;
     let tmp = mod(t * t, p);
+    let innerSteps = 0;
     while (tmp !== 1n) {
+      if (++innerSteps > 1000) throw new Error('tonelliShanks: inner loop exceeded 1000 iterations');
       tmp = mod(tmp * tmp, p);
       i++;
     }
