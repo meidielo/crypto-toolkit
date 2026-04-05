@@ -30,11 +30,16 @@ This toolkit uses JavaScript BigInt arithmetic which is **not constant-time**. R
 - **Substitution Cipher Analysis** -- Interactive monoalphabetic cipher breaker with frequency analysis bar charts, digraph/trigraph counters, interactive substitution table, and live decoded text preview with English reference frequencies.
 - **Diffie-Hellman Key Exchange** -- Step-by-step key exchange: public parameters, Alice computes A, Bob computes B, both derive shared secret.
 - **AES-128 Round Visualization** -- Single-round AES breakdown showing SubBytes (S-Box lookup), ShiftRows, MixColumns (GF(2^8) polynomial matrix multiplication with per-column detail), and AddRoundKey. 4x4 state matrix visualization with changed-byte highlighting. FIPS 197 test vectors as defaults. Web Crypto comparison button.
-- **ECDSA Nonce Reuse Attack** -- Demonstrates how reusing nonce k across two signatures leaks the private key d. Algebraic extraction of k and d with step-by-step derivation. Explains the PS3 ECDSA compromise (2010) and RFC 6979.
+- **ECDSA Nonce Reuse Attack** -- Demonstrates how reusing nonce k across two signatures leaks the private key d. Algebraic extraction of k and d with step-by-step derivation. Explains the PS3 ECDSA compromise (2010) and includes RFC 6979 HMAC-DRBG construction as the fix.
 
-### Post-Quantum Cryptography
-- **Lattice (LWE) Encryption** -- Learning With Errors demonstration: key generation (random matrix A, secret s, error e), encrypt a single bit, decrypt with error analysis. Explains why LWE is the basis for NIST ML-KEM (CRYSTALS-Kyber) and why it resists quantum attacks.
-- **Schnorr ZKP Protocol** -- Interactive zero-knowledge proof: Prover commits, Verifier challenges, Prover responds. Two-panel layout showing message flow. Proves knowledge of secret without revealing it.
+### Implementation Attacks
+- **Padding Oracle Attack** -- Vaudenay attack on AES-CBC: demonstrates how PKCS#7 padding responses leak plaintext byte-by-byte without knowing the key. Explains why authenticated encryption (AES-GCM) eliminates this attack class.
+- **Textbook RSA Malleability** -- Shows RSA's multiplicative homomorphism: attacker modifies ciphertext to encrypt a related message (c * 2^e → decrypts to 2m). Explains why RSA-OAEP padding is mandatory.
+- **Hash Length Extension Attack** -- Demonstrates Merkle-Damgard vulnerability: SHA-256(secret || message) can be extended to SHA-256(secret || message || padding || extension) without knowing the secret. Shows why HMAC prevents this.
+
+### Advanced
+- **Lattice (LWE) Encryption** -- Post-quantum Learning With Errors: key generation, encrypt a single bit, decrypt with error analysis. Explains why LWE is the basis for NIST ML-KEM (CRYSTALS-Kyber) and resists quantum attacks.
+- **Schnorr ZKP Protocol** -- Interactive zero-knowledge proof with Prover/Verifier two-panel layout. Includes cheating prover mode demonstrating soundness: a prover who doesn't know x cannot fake the proof.
 
 ### Protocol Composition
 - **AES-GCM Authenticated Encryption** -- Full Galois/Counter Mode: AES-CTR stream cipher + GHASH polynomial authentication over GF(2^128). Shows counter blocks, per-block GHASH accumulator, and final authentication tag. Web Crypto comparison.
@@ -90,7 +95,7 @@ src/
     StateMatrix.tsx   # 4x4 hex byte grid + vector/matrix display components
     SecurityBanner.tsx # Persistent educational disclaimer (BigInt timing caveat)
     WebCryptoVerify.tsx # Reusable Web Crypto comparison component
-    pages/            # One component per tool/workflow (19 pages total)
+    pages/            # One component per tool/workflow (22 pages total)
     ui/               # shadcn/ui base components
   App.tsx             # Main app shell with sidebar + content routing
   main.tsx            # Entry point

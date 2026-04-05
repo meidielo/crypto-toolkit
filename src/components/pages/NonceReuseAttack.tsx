@@ -243,6 +243,34 @@ export function NonceReuseAttack() {
                 specifically to prevent this class of vulnerability.
               </p>
             </div>
+
+            {/* RFC 6979: The Fix */}
+            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 space-y-2">
+              <p className="text-sm font-bold text-green-600 dark:text-green-400">The Fix: RFC 6979 Deterministic k</p>
+              <p className="text-xs text-green-600/80 dark:text-green-400/70">
+                RFC 6979 derives k deterministically from the private key d and message hash H(m)
+                using HMAC-DRBG. This guarantees:
+              </p>
+              <ul className="text-xs text-green-600/80 dark:text-green-400/70 list-disc pl-4 space-y-1">
+                <li><strong>Uniqueness:</strong> Different messages always produce different k values (H(m) differs)</li>
+                <li><strong>Determinism:</strong> Same (d, m) always produces the same k — no randomness needed</li>
+                <li><strong>Secrecy:</strong> k depends on d, so an attacker cannot predict k without knowing d</li>
+              </ul>
+              <FormulaBox>
+                <p className="text-xs text-muted-foreground mb-1">RFC 6979 HMAC-DRBG construction:</p>
+                <ComputationRow label="Step 1" value="V = 0x01...01 (32 bytes)" />
+                <ComputationRow label="Step 2" value="K = 0x00...00 (32 bytes)" />
+                <ComputationRow label="Step 3" value="K = HMAC_K(V || 0x00 || d || H(m))" />
+                <ComputationRow label="Step 4" value="V = HMAC_K(V)" />
+                <ComputationRow label="Step 5" value="K = HMAC_K(V || 0x01 || d || H(m))" />
+                <ComputationRow label="Step 6" value="V = HMAC_K(V)" />
+                <ComputationRow label="Output" value="k = V (truncated to curve order)" highlight />
+              </FormulaBox>
+              <p className="text-xs text-green-600/80 dark:text-green-400/70">
+                With RFC 6979, signing H₁={h1Str} and H₂={h2Str} would produce DIFFERENT k values
+                automatically — making the nonce reuse attack impossible.
+              </p>
+            </div>
           </div>
         )}
       </StepCard>

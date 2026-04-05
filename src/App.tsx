@@ -22,6 +22,7 @@ import { Argon2Workflow } from '@/components/pages/Argon2Workflow';
 import { TLS13Workflow } from '@/components/pages/TLS13Workflow';
 import { PaddingOracleAttack } from '@/components/pages/PaddingOracleAttack';
 import { TextbookRSAAttack } from '@/components/pages/TextbookRSAAttack';
+import { HashExtensionAttack } from '@/components/pages/HashExtensionAttack';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SecurityBanner } from '@/components/SecurityBanner';
 
@@ -46,7 +47,8 @@ export type Page =
   | 'argon2'
   | 'tls13'
   | 'padding-oracle'
-  | 'textbook-rsa';
+  | 'textbook-rsa'
+  | 'hash-extension';
 
 const PAGE_COMPONENTS: Record<Page, React.FC> = {
   'ec-calculator': ECCalculator,
@@ -70,6 +72,7 @@ const PAGE_COMPONENTS: Record<Page, React.FC> = {
   tls13: TLS13Workflow,
   'padding-oracle': PaddingOracleAttack,
   'textbook-rsa': TextbookRSAAttack,
+  'hash-extension': HashExtensionAttack,
 };
 
 const PAGE_TITLES: Record<Page, string> = {
@@ -94,6 +97,7 @@ const PAGE_TITLES: Record<Page, string> = {
   tls13: 'TLS 1.3 Handshake',
   'padding-oracle': 'Padding Oracle Attack',
   'textbook-rsa': 'Textbook RSA Attack',
+  'hash-extension': 'Hash Length Extension Attack',
 };
 
 function useIsMobile() {
