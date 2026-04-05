@@ -20,6 +20,8 @@ import { SchnorrZKP } from '@/components/pages/SchnorrZKP';
 import { AESGCMWorkflow } from '@/components/pages/AESGCMWorkflow';
 import { Argon2Workflow } from '@/components/pages/Argon2Workflow';
 import { TLS13Workflow } from '@/components/pages/TLS13Workflow';
+import { PaddingOracleAttack } from '@/components/pages/PaddingOracleAttack';
+import { TextbookRSAAttack } from '@/components/pages/TextbookRSAAttack';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SecurityBanner } from '@/components/SecurityBanner';
 
@@ -42,7 +44,9 @@ export type Page =
   | 'schnorr'
   | 'aes-gcm'
   | 'argon2'
-  | 'tls13';
+  | 'tls13'
+  | 'padding-oracle'
+  | 'textbook-rsa';
 
 const PAGE_COMPONENTS: Record<Page, React.FC> = {
   'ec-calculator': ECCalculator,
@@ -64,6 +68,8 @@ const PAGE_COMPONENTS: Record<Page, React.FC> = {
   'aes-gcm': AESGCMWorkflow,
   argon2: Argon2Workflow,
   tls13: TLS13Workflow,
+  'padding-oracle': PaddingOracleAttack,
+  'textbook-rsa': TextbookRSAAttack,
 };
 
 const PAGE_TITLES: Record<Page, string> = {
@@ -86,6 +92,8 @@ const PAGE_TITLES: Record<Page, string> = {
   'aes-gcm': 'AES-GCM Authenticated Encryption',
   argon2: 'Argon2id Key Derivation',
   tls13: 'TLS 1.3 Handshake',
+  'padding-oracle': 'Padding Oracle Attack',
+  'textbook-rsa': 'Textbook RSA Attack',
 };
 
 function useIsMobile() {

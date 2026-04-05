@@ -85,6 +85,25 @@ export function SchnorrZKP() {
     }
   }
 
+  // Cheating prover mode — demonstrates soundness
+  const [cheatingMode, setCheatingMode] = useState(false);
+
+  function doCheatingProof() {
+    // Cheater doesn't know x. They pick s randomly, then compute t = g^s * y^(-c) mod p
+    // This only works if they can predict c BEFORE committing t
+    const p = parseBigInt(pStr)!;
+    if (!yVal || !cVal) return;
+    // Cheater picks random s
+    const arr = new Uint32Array(1);
+    crypto.getRandomValues(arr);
+    const fakeS = mod(BigInt(arr[0]), p - 1n);
+    setSVal(fakeS);
+    // The cheater committed t BEFORE seeing c. To pass verification,
+    // t would need to equal g^s * y^(-c) mod p — but t was committed
+    // before c was known, so this almost certainly fails.
+    setPhase('verify');
+  }
+
   const phaseOrder: Phase[] = ['setup', 'commit', 'challenge', 'respond', 'verify'];
   const phaseIdx = phaseOrder.indexOf(phase);
   function getStatus(ph: Phase): 'pending' | 'active' | 'complete' {
@@ -143,7 +162,25 @@ export function SchnorrZKP() {
           </StepCard>
 
           <StepCard step={4} title="Response: Compute s" status={getStatus('respond')}>
-            <Button onClick={doRespond} className="w-full" size="sm">Compute s = r + c·x mod (p-1)</Button>
+            <div className="flex gap-2 mb-2">
+              <Badge
+                variant={!cheatingMode ? 'default' : 'outline'}
+                className="cursor-pointer"
+                onClick={() => setCheatingMode(false)}
+              >Honest Prover</Badge>
+              <Badge
+                variant={cheatingMode ? 'destructive' : 'outline'}
+                className="cursor-pointer"
+                onClick={() => setCheatingMode(true)}
+              >Cheating Prover</Badge>
+            </div>
+            {cheatingMode ? (
+              <Button onClick={doCheatingProof} className="w-full bg-red-600 hover:bg-red-700" size="sm">
+                Fake Response (without knowing x)
+              </Button>
+            ) : (
+              <Button onClick={doRespond} className="w-full" size="sm">Compute s = r + c·x mod (p-1)</Button>
+            )}
             {sVal !== null && (
               <FormulaBox>
                 <ComputationRow label="s" formula={`${rStr} + ${cVal}·${xStr} mod ${BigInt(parseBigInt(pStr)! - 1n)}`} value={sVal.toString()} highlight />
@@ -181,11 +218,19 @@ export function SchnorrZKP() {
                     {verifyResult.valid ? 'PROOF ACCEPTED' : 'PROOF REJECTED'}
                   </Badge>
                 </div>
-                {verifyResult.valid && (
+                {verifyResult.valid && !cheatingMode && (
                   <p className="text-xs text-muted-foreground mt-2">
                     The Verifier is convinced the Prover knows x, but learned nothing about the value of x itself.
                     This is a zero-knowledge proof — the transcript (t, c, s) can be simulated without knowing x.
                   </p>
+                )}
+                {!verifyResult.valid && cheatingMode && (
+                  <div className="mt-2 pt-2 border-t">
+                    <p className="text-xs text-red-500">
+                      <strong>Soundness demonstrated:</strong> The cheating prover committed to t BEFORE seeing the challenge c.
+                      To fake the proof, they would need to predict c — which is random. A cheater succeeds with probability 1/q per round.
+                    </p>
+                  </div>
                 )}
               </FormulaBox>
             )}
