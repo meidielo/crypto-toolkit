@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { WebCryptoVerify } from '@/components/WebCryptoVerify';
+import { webCryptoRSAEncryptDecrypt, bytesToHex } from '@/lib/web-crypto';
 import {
   generateRSAKeys,
   rsaEncrypt,
@@ -174,6 +176,26 @@ export function RSACalculator() {
               </Button>
               {genError && <p className="text-sm text-destructive">{genError}</p>}
               {keys && <KeyDisplay k={keys} label="Generated Key Pair" />}
+              {keys && (
+                <WebCryptoVerify
+                  label="Generate & test RSA with Web Crypto (constant-time)"
+                  onVerify={async () => {
+                    const r = await webCryptoRSAEncryptDecrypt(42n, 2048);
+                    if (!r) return { success: false, details: ['Web Crypto RSA not available'] };
+                    const decHex = bytesToHex(r.decrypted);
+                    return {
+                      success: decHex === '2a', // 42 = 0x2a
+                      details: [
+                        `Engine: ${r.engine}`,
+                        `Key size: 2048-bit (Web Crypto minimum)`,
+                        `Encrypted (first 32 bytes): ${bytesToHex(r.encrypted).substring(0, 64)}...`,
+                        `Decrypted: 0x${decHex} (= ${parseInt(decHex, 16)})`,
+                        `Your BigInt key: ${keys.n.toString().substring(0, 20)}... (${bitSize}-bit)`,
+                      ],
+                    };
+                  }}
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { InlineWarning } from '@/components/SecurityBanner';
+import { WebCryptoVerify } from '@/components/WebCryptoVerify';
+import { webCryptoECDSASignVerify, bytesToHex } from '@/lib/web-crypto';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -251,6 +253,25 @@ export function ECDSAWorkflow() {
               </span>
             </div>
           </FormulaBox>
+        )}
+        {verifyResult && (
+          <WebCryptoVerify
+            label="Verify with Web Crypto (P-256, constant-time)"
+            onVerify={async () => {
+              const r = await webCryptoECDSASignVerify(message || 'test');
+              if (!r) return { success: false, details: ['Web Crypto ECDSA not available'] };
+              return {
+                success: r.verified,
+                details: [
+                  `Engine: ${r.engine}`,
+                  `Curve: ${r.curve}`,
+                  `Signature: ${bytesToHex(r.signature).substring(0, 40)}...`,
+                  `Verified: ${r.verified}`,
+                  `Public key X: ${r.publicKeyJwk.x}`,
+                ],
+              };
+            }}
+          />
         )}
       </StepCard>
     </div>

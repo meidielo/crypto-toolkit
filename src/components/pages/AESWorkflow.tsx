@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StepCard, FormulaBox } from '@/components/StepCard';
 import { StateMatrix } from '@/components/StateMatrix';
+import { WebCryptoVerify } from '@/components/WebCryptoVerify';
+import { webCryptoAESEncrypt, bytesToHex } from '@/lib/web-crypto';
 import {
   hexToState,
   stateToHex,
@@ -247,6 +249,29 @@ export function AESWorkflow() {
             <FormulaBox>
               <p className="text-xs">Round 1 output: <span className="font-bold">{stateToHex(afterARK)}</span></p>
             </FormulaBox>
+            <WebCryptoVerify
+              label="Encrypt full AES-128 with Web Crypto (constant-time)"
+              onVerify={async () => {
+                const ptBytes = new Uint8Array(16);
+                const keyBytes = new Uint8Array(16);
+                const cleanPt = ptHex.replace(/\s+/g, '');
+                const cleanKey = keyHex.replace(/\s+/g, '');
+                for (let i = 0; i < 16; i++) {
+                  ptBytes[i] = parseInt(cleanPt.substring(i*2, i*2+2), 16);
+                  keyBytes[i] = parseInt(cleanKey.substring(i*2, i*2+2), 16);
+                }
+                const r = await webCryptoAESEncrypt(ptBytes, keyBytes);
+                return {
+                  success: true,
+                  details: [
+                    `Engine: Web Crypto ${r.mode} (constant-time native)`,
+                    `Full ciphertext (all 10 rounds): ${bytesToHex(r.ciphertext)}`,
+                    `Your Round 1 output: ${stateToHex(afterARK)}`,
+                    `Note: Web Crypto runs all 10 rounds, so the outputs differ. Your step-by-step shows Round 1 only.`,
+                  ],
+                };
+              }}
+            />
           </div>
         )}
       </StepCard>
