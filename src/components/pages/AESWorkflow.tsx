@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StepCard, FormulaBox } from '@/components/StepCard';
 import { StateMatrix } from '@/components/StateMatrix';
+import { ShiftRowsAnimation } from '@/components/ShiftRowsAnimation';
 import { WebCryptoVerify } from '@/components/WebCryptoVerify';
 import { webCryptoAESEncrypt, bytesToHex } from '@/lib/web-crypto';
 import {
@@ -145,18 +146,14 @@ export function AESWorkflow() {
         )}
       </StepCard>
 
-      {/* Step 3: ShiftRows */}
-      <StepCard step={3} title="ShiftRows" status={getStatus('shiftrows')}>
+      {/* Step 3: ShiftRows (animated spatial permutation) */}
+      <StepCard step={3} title="ShiftRows (Spatial Permutation)" status={getStatus('shiftrows')}>
         {afterSub && afterShift && (
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              Row 0: no shift | Row 1: left 1 | Row 2: left 2 | Row 3: left 3
+              Row 0: no shift | Row 1: cyclic left 1 | Row 2: cyclic left 2 | Row 3: cyclic left 3
             </p>
-            <div className="flex flex-wrap gap-4 items-start">
-              <StateMatrix state={afterSub} label="Before" />
-              <div className="self-center text-xl text-muted-foreground hidden sm:block">→</div>
-              <StateMatrix state={afterShift} label="After ShiftRows" highlight={diffHighlight(afterSub, afterShift)} />
-            </div>
+            <ShiftRowsAnimation before={afterSub} after={afterShift} />
             <Button onClick={advance} variant="outline" className="w-full">Next: MixColumns →</Button>
           </div>
         )}
