@@ -122,8 +122,12 @@ export function ECDSAWorkflow() {
     } catch (e) { setSignError(String(e)); }
   }
 
+  const [verifyError, setVerifyError] = useState('');
+
   function doVerify() {
-    if (!signResult || !hashInt) return;
+    setVerifyError('');
+    if (!signResult) { setVerifyError('Sign a message first (Step 3)'); return; }
+    if (!hashInt) { setVerifyError('Hash a message first (Step 2)'); return; }
     const A = parseBigInt(aStr)!, p = parseBigInt(pStr)!;
     const gx = parseBigInt(gxStr)!, gy = parseBigInt(gyStr)!;
     const q = parseBigInt(qStr)!;
@@ -138,7 +142,9 @@ export function ECDSAWorkflow() {
       const P = pointAdd(u1G, u2Q, A, p);
       const v = mod(P.x, q);
       setVerifyResult({ w, u1, u2, u1G, u2Q, P, v, valid: v === r });
-    } catch { /* ignore */ }
+    } catch (e) {
+      setVerifyError(`Verification failed: ${e}. Ensure q is prime (curve subgroup order).`);
+    }
   }
 
   const phaseOrder: Phase[] = ['setup', 'hash', 'sign', 'verify'];
@@ -234,6 +240,7 @@ export function ECDSAWorkflow() {
       {/* Step 4: Verify */}
       <StepCard step={4} title="Verify Signature" status={getStatus('verify')}>
         <Button onClick={doVerify} className="w-full">Verify Signature</Button>
+        {verifyError && <p className="text-sm text-destructive">{verifyError}</p>}
         {verifyResult && (
           <FormulaBox>
             <p className="text-xs text-muted-foreground mb-2">Verification steps:</p>
