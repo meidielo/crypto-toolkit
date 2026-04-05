@@ -7,6 +7,12 @@ import { ModularArithmetic } from '@/components/pages/ModularArithmetic';
 import { BaseConverter } from '@/components/pages/BaseConverter';
 import { Factorization } from '@/components/pages/Factorization';
 import { CipherTools } from '@/components/pages/CipherTools';
+import { ECDSAWorkflow } from '@/components/pages/ECDSAWorkflow';
+import { PaillierWorkflow } from '@/components/pages/PaillierWorkflow';
+import { ElGamalWorkflow } from '@/components/pages/ElGamalWorkflow';
+import { RSAAttackWorkflow } from '@/components/pages/RSAAttackWorkflow';
+import { SubstitutionAnalysis } from '@/components/pages/SubstitutionAnalysis';
+import { DHWorkflow } from '@/components/pages/DHWorkflow';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export type Page =
@@ -15,7 +21,13 @@ export type Page =
   | 'modular'
   | 'converter'
   | 'factorization'
-  | 'ciphers';
+  | 'ciphers'
+  | 'ecdsa'
+  | 'paillier'
+  | 'elgamal'
+  | 'rsa-attack'
+  | 'substitution'
+  | 'diffie-hellman';
 
 const PAGE_COMPONENTS: Record<Page, React.FC> = {
   'ec-calculator': ECCalculator,
@@ -24,6 +36,12 @@ const PAGE_COMPONENTS: Record<Page, React.FC> = {
   converter: BaseConverter,
   factorization: Factorization,
   ciphers: CipherTools,
+  ecdsa: ECDSAWorkflow,
+  paillier: PaillierWorkflow,
+  elgamal: ElGamalWorkflow,
+  'rsa-attack': RSAAttackWorkflow,
+  substitution: SubstitutionAnalysis,
+  'diffie-hellman': DHWorkflow,
 };
 
 const PAGE_TITLES: Record<Page, string> = {
@@ -33,6 +51,12 @@ const PAGE_TITLES: Record<Page, string> = {
   converter: 'Base & Text Converter',
   factorization: 'Integer Factorization',
   ciphers: 'Cipher Tools',
+  ecdsa: 'ECDSA Signing Workflow',
+  paillier: 'Paillier Cryptosystem',
+  elgamal: 'ElGamal Cryptosystem',
+  'rsa-attack': 'RSA Attack Workflow',
+  substitution: 'Substitution Analysis',
+  'diffie-hellman': 'Diffie-Hellman Key Exchange',
 };
 
 export default function App() {

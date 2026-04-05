@@ -288,6 +288,51 @@ export function atbashCipher(text: string): string {
   });
 }
 
+// ============= Paillier Helpers =============
+
+export function paillierL(x: bigint, n: bigint): bigint {
+  return (x - 1n) / n;
+}
+
+export function paillierEncrypt(m: bigint, r: bigint, n: bigint, nSquared: bigint, g: bigint): bigint {
+  const gm = modPow(g, m, nSquared);
+  const rn = modPow(r, n, nSquared);
+  return mod(gm * rn, nSquared);
+}
+
+export function paillierDecrypt(c: bigint, lambda: bigint, mu: bigint, n: bigint, nSquared: bigint): bigint {
+  const u = modPow(c, lambda, nSquared);
+  const l = paillierL(u, n);
+  return mod(l * mu, n);
+}
+
+// ============= Discrete Log (Bounded Search) =============
+
+export function discreteLogBounded(g: bigint, target: bigint, p: bigint, maxSearch: number = 10000): bigint | null {
+  let current = 1n;
+  for (let i = 0; i < maxSearch; i++) {
+    if (current === target) return BigInt(i);
+    current = mod(current * g, p);
+  }
+  return null;
+}
+
+// ============= N-gram Analysis =============
+
+export function countNgrams(text: string, n: number): Map<string, number> {
+  const clean = text.toUpperCase().replace(/[^A-Z]/g, '');
+  const counts = new Map<string, number>();
+  for (let i = 0; i <= clean.length - n; i++) {
+    const ngram = clean.substring(i, i + n);
+    counts.set(ngram, (counts.get(ngram) || 0) + 1);
+  }
+  return counts;
+}
+
+export function sortedNgrams(counts: Map<string, number>): [string, number][] {
+  return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+}
+
 // ============= Quadratic Residue / Legendre =============
 
 export function legendreSymbol(a: bigint, p: bigint): -1 | 0 | 1 {

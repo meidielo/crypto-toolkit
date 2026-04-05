@@ -15,24 +15,23 @@
 - [x] Production build passes
 - [x] All 6 modules functionally tested
 
-## Phase 2: ECDSA Workflow Sandbox (NEXT)
-- [ ] ECDSA step-by-step guided dashboard
-- [ ] Hashing module with line-ending awareness tied to ECDSA flow
-- [ ] Signature generation walkthrough (k, r, s computation)
-- [ ] Signature verification walkthrough (w, u1, u2, v)
-- [ ] Pedagogical field labeling (prime field p vs curve order q)
+## Phase 2: Guided Workflow Modules (COMPLETE)
+- [x] StepCard shared component for step-by-step workflows
+- [x] Add crypto-math utilities (paillierL, discreteLogBounded, countNgrams)
+- [x] ECDSA Signing Workflow (setup, hash, sign, verify with all intermediate values)
+- [x] Paillier Cryptosystem Workflow (keygen, encrypt, homomorphic add, decrypt)
+- [x] ElGamal Cryptosystem Workflow (setup, encrypt, homomorphic multiply, decrypt)
+- [x] RSA Attack Workflow (factor n, compute d, decrypt M, verify)
+- [x] Substitution Cipher Analysis (frequency analysis, digraphs, trigraphs, interactive decode)
+- [x] Diffie-Hellman Key Exchange (public params, Alice, Bob, shared secret)
+- [x] Updated sidebar with WORKFLOWS category
+- [x] All workflows tested with assignment values
 
-## Phase 3: Additional Workflows (FUTURE)
-- [ ] Diffie-Hellman key exchange walkthrough
-- [ ] RSA signing/verification workflow
-- [ ] ElGamal encryption workflow
+## Phase 3: Future Enhancements
 - [ ] Menezes-Vanstone EC ElGamal (from christelbach)
 - [ ] Shamir Secret Sharing
-
-## Phase 4: Polish (FUTURE)
 - [ ] Interactive curve visualization (F_p grid plot)
 - [ ] Mobile responsive improvements
-- [ ] Keyboard shortcuts
 - [ ] Export/share calculations
 
 ## Review - Phase 1
@@ -40,3 +39,11 @@
 - Zero console errors
 - Production build: 318KB JS (96KB gzipped), 55KB CSS (10KB gzipped)
 - Verified: EC point addition, scalar multiply, RSA keygen, mod inverse, factorization, Caesar cipher, SHA-1 hashing
+
+## Review - Phase 2
+- All 6 workflow pages render and compute correctly
+- Zero console errors
+- Production build: 356KB JS (104KB gzipped), 58KB CSS (10KB gzipped)
+- Verified: ECDSA Q=dG=(11,3), RSA Attack p=99991 q=100109 M=12345, Paillier lambda=3180 mu=6145, DH shared=2
+- RSA Attack factorization uses trial division from 2 upward (fast for educational sizes)
+- All values match COSC2536 assignment answers
