@@ -13,7 +13,11 @@ import { ElGamalWorkflow } from '@/components/pages/ElGamalWorkflow';
 import { RSAAttackWorkflow } from '@/components/pages/RSAAttackWorkflow';
 import { SubstitutionAnalysis } from '@/components/pages/SubstitutionAnalysis';
 import { DHWorkflow } from '@/components/pages/DHWorkflow';
+import { AESWorkflow } from '@/components/pages/AESWorkflow';
+import { NonceReuseAttack } from '@/components/pages/NonceReuseAttack';
+import { LWEWorkflow } from '@/components/pages/LWEWorkflow';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { SecurityBanner } from '@/components/SecurityBanner';
 
 export type Page =
   | 'ec-calculator'
@@ -27,7 +31,10 @@ export type Page =
   | 'elgamal'
   | 'rsa-attack'
   | 'substitution'
-  | 'diffie-hellman';
+  | 'diffie-hellman'
+  | 'aes'
+  | 'nonce-reuse'
+  | 'lwe';
 
 const PAGE_COMPONENTS: Record<Page, React.FC> = {
   'ec-calculator': ECCalculator,
@@ -42,6 +49,9 @@ const PAGE_COMPONENTS: Record<Page, React.FC> = {
   'rsa-attack': RSAAttackWorkflow,
   substitution: SubstitutionAnalysis,
   'diffie-hellman': DHWorkflow,
+  aes: AESWorkflow,
+  'nonce-reuse': NonceReuseAttack,
+  lwe: LWEWorkflow,
 };
 
 const PAGE_TITLES: Record<Page, string> = {
@@ -57,6 +67,9 @@ const PAGE_TITLES: Record<Page, string> = {
   'rsa-attack': 'RSA Attack Workflow',
   substitution: 'Substitution Analysis',
   'diffie-hellman': 'Diffie-Hellman Key Exchange',
+  aes: 'AES-128 Round Visualization',
+  'nonce-reuse': 'ECDSA Nonce Reuse Attack',
+  lwe: 'Lattice (LWE) Encryption',
 };
 
 function useIsMobile() {
@@ -109,6 +122,7 @@ export default function App() {
             <ThemeToggle />
           </header>
           <div className="p-4 md:p-6 max-w-6xl mx-auto">
+            <SecurityBanner />
             <PageComponent />
           </div>
         </main>

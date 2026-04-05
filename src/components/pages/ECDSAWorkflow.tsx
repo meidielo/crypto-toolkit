@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { InlineWarning } from '@/components/SecurityBanner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -208,6 +209,9 @@ export function ECDSAWorkflow() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">k (nonce, random)</Label><Input value={kStr} onChange={e => setKStr(e.target.value)} className="font-mono" /></div>
         </div>
+        <InlineWarning>
+          Nonce k MUST be cryptographically random and unique for every signature. Reusing k leaks the private key. See the Nonce Reuse Attack workflow.
+        </InlineWarning>
         <Button onClick={doSign} className="w-full">Compute Signature</Button>
         {signError && <p className="text-sm text-destructive">{signError}</p>}
         {signResult && (

@@ -9,6 +9,7 @@ import {
   PRESET_CURVES,
   discriminant,
   isOnCurve,
+  identifyCurve,
   pointAddWithSteps,
   scalarMultiplyWithSteps,
   getAllPointsFast,
@@ -70,6 +71,20 @@ export function ECCalculator() {
     if (disc === 0n) return { valid: false, reason: 'Singular curve (4A³ + 27B² ≡ 0 mod p)' };
     return { valid: true, reason: '', disc };
   }, [A, B, p]);
+
+  // Curve contradiction detection
+  const curveContradiction = useMemo(() => {
+    if (!curveValid.valid || A === null || B === null || p === null) return null;
+    const identified = identifyCurve(A, B, p);
+    const selectedPresetName = PRESET_CURVES[presetIdx]?.name || '';
+    // Check if manually-edited params match a DIFFERENT known curve than selected
+    if (identified && !selectedPresetName.includes(identified) && presetIdx >= 3) {
+      return { type: 'contradiction' as const, message: `These parameters define ${identified}, not ${selectedPresetName.split(' (')[0]}` };
+    }
+    if (identified) return { type: 'identified' as const, message: `Standard curve: ${identified}` };
+    if (presetIdx >= 3 && !identified) return { type: 'custom' as const, message: 'Custom parameters (not a recognized standard curve)' };
+    return null;
+  }, [A, B, p, curveValid.valid, presetIdx]);
 
   const allPoints = useMemo(() => {
     if (!curveValid.valid || A === null || B === null || p === null) return null;
@@ -187,6 +202,17 @@ export function ECCalculator() {
             </div>
           ) : (
             <Badge variant="destructive">{curveValid.reason}</Badge>
+          )}
+          {curveContradiction?.type === 'contradiction' && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-md px-3 py-2 text-xs text-red-600 dark:text-red-400 flex items-start gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span><strong>Parameter Contradiction:</strong> {curveContradiction.message}</span>
+            </div>
+          )}
+          {curveContradiction?.type === 'custom' && (
+            <Badge variant="outline" className="text-yellow-600 dark:text-yellow-400 border-yellow-500/30 bg-yellow-500/10">
+              {curveContradiction.message}
+            </Badge>
           )}
         </CardContent>
       </Card>

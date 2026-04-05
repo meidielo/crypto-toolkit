@@ -37,7 +37,15 @@
 - [x] ComputationRow: flex-col on mobile, break-all on values
 - [x] Header: truncating title, responsive text size
 
-## Phase 4: Future Enhancements
+## Phase 4: Critical Cryptographic Gaps (COMPLETE)
+- [x] AES-128 Single Round Visualization (SubBytes, ShiftRows, MixColumns w/ GF(2^8), AddRoundKey)
+- [x] Preset curve parameter contradiction validation (identifyCurve, red warnings)
+- [x] ECDSA Nonce Reuse Attack workflow (sign twice, extract d, PS3 context)
+- [x] Post-Quantum LWE module (keygen, encrypt bit, decrypt, error analysis)
+- [x] Security banner (BigInt timing, Math.random not CSPRNG)
+- [x] Inline nonce warning on ECDSA page
+
+## Phase 5: Future Enhancements
 - [ ] Menezes-Vanstone EC ElGamal (from christelbach)
 - [ ] Shamir Secret Sharing
 - [ ] Interactive curve visualization (F_p grid plot)
@@ -63,3 +71,13 @@
 - Desktop (1280px): unchanged from Phase 2, sidebar auto-open
 - Zero console errors
 - Production build: 358KB JS (104KB gzipped), 59KB CSS (10KB gzipped)
+
+## Review - Phase 4
+- AES: FIPS 197 test vectors, S-Box lookup, ShiftRows, MixColumns GF(2^8) per-column detail
+- Nonce Reuse: d=7 recovered from two signatures with same k=3 (curve y²=x³+2x+3 mod 97, q=89)
+- LWE: bit 1 encrypted and decrypted correctly, error accumulation visible
+- Security banner: visible on first load, dismissible, BigInt timing + CSPRNG warnings
+- Curve validation: identifyCurve() detects contradiction when params don't match selected preset
+- Zero console errors
+- Production build: 389KB JS (112KB gzipped), 63KB CSS (11KB gzipped)
+- 15 pages total across 5 categories

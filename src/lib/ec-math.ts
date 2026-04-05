@@ -254,6 +254,23 @@ export const PRESET_CURVES = [
   { name: 'P-256 (NIST)', A: -3n, B: 0x5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604bn, p: 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffffn },
 ];
 
+// Known standard curves for contradiction detection
+const KNOWN_CURVES: { name: string; A: bigint; B: bigint; p: bigint }[] = [
+  { name: 'secp256k1', A: 0n, B: 7n, p: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2Fn },
+  { name: 'P-192 (NIST)', A: -3n, B: 0x64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1n, p: 0xfffffffffffffffffffffffffffffffeffffffffffffffffn },
+  { name: 'P-256 (NIST)', A: -3n, B: 0x5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604bn, p: 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffffn },
+];
+
+export function identifyCurve(A: bigint, B: bigint, p: bigint): string | null {
+  // Normalize A to positive mod p for comparison
+  const normA = ((A % p) + p) % p;
+  for (const curve of KNOWN_CURVES) {
+    const cNormA = ((curve.A % curve.p) + curve.p) % curve.p;
+    if (normA === cNormA && B === curve.B && p === curve.p) return curve.name;
+  }
+  return null;
+}
+
 export interface PointAdditionSteps {
   P: ECPoint;
   Q: ECPoint;
