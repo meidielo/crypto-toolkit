@@ -66,12 +66,23 @@ export function SchnorrZKP() {
     setPhase('verify');
   }
 
+  const [verifyError, setVerifyError] = useState('');
+
   function doVerify() {
-    const p = parseBigInt(pStr)!, g = parseBigInt(gStr)!;
-    if (!sVal || !tVal || !cVal || !yVal) return;
-    const lhs = modPow(g, sVal, p);
-    const rhs = mod(tVal * modPow(yVal, cVal, p), p);
-    setVerifyResult({ lhs, rhs, valid: lhs === rhs });
+    setVerifyError('');
+    const p = parseBigInt(pStr), g = parseBigInt(gStr);
+    if (!p || !g) { setVerifyError('Missing parameters'); return; }
+    if (sVal === null || tVal === null || cVal === null || yVal === null) {
+      setVerifyError('Complete all previous steps first');
+      return;
+    }
+    try {
+      const lhs = modPow(g, sVal, p);
+      const rhs = mod(tVal * modPow(yVal, cVal, p), p);
+      setVerifyResult({ lhs, rhs, valid: lhs === rhs });
+    } catch (e) {
+      setVerifyError(String(e));
+    }
   }
 
   const phaseOrder: Phase[] = ['setup', 'commit', 'challenge', 'respond', 'verify'];
@@ -160,6 +171,7 @@ export function SchnorrZKP() {
 
           <StepCard step={5} title="Verify: Check g^s = t · y^c" status={getStatus('verify')}>
             <Button onClick={doVerify} className="w-full" size="sm">Verify</Button>
+            {verifyError && <p className="text-sm text-destructive">{verifyError}</p>}
             {verifyResult && (
               <FormulaBox>
                 <ComputationRow label="g^s mod p" value={verifyResult.lhs.toString()} />
