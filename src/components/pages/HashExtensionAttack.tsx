@@ -26,18 +26,18 @@ export function HashExtensionAttack() {
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
-  // Compute MD padding for Merkle-Damgard construction
+  // Compute MD padding for Merkle-Damgard construction (uses BigInt for length field)
   function mdPadding(msgLen: number): string {
     // SHA-256 padding: append 0x80, then zeros, then 64-bit big-endian length
-    const bitLen = msgLen * 8;
+    const bitLen = BigInt(msgLen * 8);
     let padding = '\x80';
     // Pad to 56 mod 64 bytes
     const totalLen = msgLen + 1;
     const padZeros = (56 - (totalLen % 64) + 64) % 64;
     padding += '\x00'.repeat(padZeros);
-    // 8-byte big-endian bit length
-    for (let i = 7; i >= 0; i--) {
-      padding += String.fromCharCode((bitLen >> (i * 8)) & 0xff);
+    // 8-byte big-endian bit length (BigInt to avoid 32-bit overflow)
+    for (let i = 7n; i >= 0n; i--) {
+      padding += String.fromCharCode(Number((bitLen >> (i * 8n)) & 0xffn));
     }
     return padding;
   }
@@ -141,13 +141,18 @@ export function HashExtensionAttack() {
               </div>
             </FormulaBox>
 
+            <p className="text-[10px] text-muted-foreground italic">
+              Simulation: verifies the concept by hashing the full concatenated input. A real attack
+              initializes SHA-256 internal state from the original hash — requires exposed internal state
+              not available via Web Crypto.
+            </p>
+
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 space-y-2">
-              <p className="text-sm font-bold text-red-600 dark:text-red-400">How This Works</p>
+              <p className="text-sm font-bold text-red-600 dark:text-red-400">How This Works (Theory)</p>
               <p className="text-xs text-red-600/80 dark:text-red-400/70">
-                SHA-256 processes data in 64-byte blocks. After processing secret||message, the internal
-                state IS the hash output. The attacker uses this output as the initial state for a new
-                SHA-256 computation, appending the padding and extension. The result equals what the
-                server would compute for SHA-256(secret || message || padding || extension).
+                SHA-256 processes data in 64-byte blocks using Merkle-Damgard construction. After
+                processing secret||message, the internal state IS the hash output. A real attacker
+                uses this as the initial state for continued hashing, appending padding and extension.
               </p>
               <p className="text-xs text-red-600/80 dark:text-red-400/70">
                 <strong>Fix:</strong> Use HMAC: H(key XOR opad || H(key XOR ipad || message)).

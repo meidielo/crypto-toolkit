@@ -225,11 +225,18 @@ export function SchnorrZKP() {
                   </p>
                 )}
                 {!verifyResult.valid && cheatingMode && (
-                  <div className="mt-2 pt-2 border-t">
+                  <div className="mt-2 pt-2 border-t space-y-2">
                     <p className="text-xs text-red-500">
                       <strong>Soundness demonstrated:</strong> The cheating prover committed to t BEFORE seeing the challenge c.
-                      To fake the proof, they would need to predict c — which is random. A cheater succeeds with probability 1/q per round.
+                      To fake the proof, they would need to predict c — which is random.
                     </p>
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <p><strong>Probability analysis:</strong></p>
+                      <p>Cheater succeeds with probability 1/(p-1) per round = 1/{(parseBigInt(pStr)! - 1n).toString()} ≈ {(1 / Number(parseBigInt(pStr)! - 1n) * 100).toFixed(2)}%</p>
+                      <p>After k rounds: (1/{(parseBigInt(pStr)! - 1n).toString()})^k</p>
+                      <p>For cryptographic security: use p ≈ 2^256, giving 1/2^256 per round — computationally impossible to cheat.</p>
+                      <p>This is why parameter size matters in ZKP — small p (like {pStr}) makes cheating feasible, large p makes it impossible.</p>
+                    </div>
                   </div>
                 )}
               </FormulaBox>

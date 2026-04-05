@@ -230,6 +230,10 @@ export function ECDSAWorkflow() {
             <ComputationRow label="R = kG" value={pointStr(signResult.R)} />
             <ComputationRow label="r" formula="R.x mod q" value={signResult.r.toString()} />
             <ComputationRow label="k⁻¹ mod q" value={signResult.kInv.toString()} />
+            <InlineWarning>
+              k⁻¹ uses extended Euclidean with data-dependent branching — timing leaks k, which leaks d.
+              Production ECDSA uses crypto.subtle.sign() with constant-time Montgomery arithmetic.
+            </InlineWarning>
             <ComputationRow label="H + r·d mod q" value={signResult.hrd.toString()} />
             <ComputationRow label="s" formula="k⁻¹(H + r·d) mod q" value={signResult.s.toString()} highlight />
             <div className="mt-2 pt-2 border-t">

@@ -144,7 +144,7 @@ export function ElGamalWorkflow() {
       {/* Encrypt */}
       <StepCard step={2} title="Encrypt Message" status={getStatus('encrypt')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div><Label className="text-xs">m (message)</Label><Input value={mStr} onChange={e => setMStr(e.target.value)} className="font-mono" /></div>
+          <div><Label className="text-xs">m (message, must be &lt; 10000 for decryption)</Label><Input value={mStr} onChange={e => setMStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">r (random nonce)</Label><Input value={rStr} onChange={e => setRStr(e.target.value)} className="font-mono" /></div>
         </div>
         <Button onClick={doEncrypt} className="w-full">Encrypt: (c₁, c₂) = (g^r, y^r · g^m)</Button>
@@ -199,7 +199,7 @@ export function ElGamalWorkflow() {
             <ComputationRow label="s" formula="c₁^x mod p" value={decResult.s.toString()} />
             <ComputationRow label="s⁻¹ mod p" value={decResult.sInv.toString()} />
             <ComputationRow label="g^m" formula="c₂ · s⁻¹ mod p" value={decResult.gm.toString()} />
-            <ComputationRow label="m" formula="dlog(g^m)" value={decResult.m !== null ? decResult.m.toString() : 'Not found (m too large)'} highlight />
+            <ComputationRow label="m" formula="dlog(g^m)" value={decResult.m !== null ? decResult.m.toString() : 'Not found — m exceeds bounded search (max 10000). Exponential ElGamal requires small messages for decryption via discrete log.'} highlight />
           </FormulaBox>
         )}
       </StepCard>

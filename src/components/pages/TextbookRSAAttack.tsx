@@ -54,7 +54,13 @@ export function TextbookRSAAttack() {
 
     // When server decrypts c': D(c * 2^e) = D(c) * 2 = m * 2
     const tamperedM = rsaDecrypt(tamperedC, d, n);
-    const originalM = tamperedM / factor; // recover m = tamperedM / 2
+
+    // Verify divisibility before integer division
+    if (mod(tamperedM, factor) !== 0n) {
+      setError('Attack produced non-divisible result — try different parameters where m*2 < n');
+      return;
+    }
+    const originalM = tamperedM / factor;
 
     setAttackResult({ factor, factorE, tamperedC, tamperedM, originalM });
     setPhase('verify');

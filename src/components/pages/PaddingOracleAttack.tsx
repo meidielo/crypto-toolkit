@@ -38,16 +38,15 @@ function aesCBCEncrypt(plaintext: number[], key: number[], iv: number[]): number
 }
 
 // The "padding oracle" — returns true if decrypted block has valid PKCS#7
+// SIMULATION: This oracle uses AES-ECB encrypt (not AES-CBC decrypt) as an
+// abstraction. In a real padding oracle attack, the server performs AES-CBC
+// decryption (inverse S-Box, inverse ShiftRows, inverse MixColumns) and
+// returns valid/invalid padding. This demo abstracts that to focus on the
+// attack logic: byte-by-byte recovery via XOR manipulation of the previous
+// ciphertext block. The attack algorithm is accurate — the decryption
+// primitive is simplified for educational clarity.
 function paddingOracle(cipherBlock: number[], prevBlock: number[], key: number[]): boolean {
-  // Decrypt: AES_dec(cipherBlock) XOR prevBlock
-  // For educational purposes, we simulate by encrypting with the key
-  // Real AES-CBC decrypt: D(c) XOR prev
-  // Since we only have aesECB (encrypt), we'll just check padding validity
-  // by computing the XOR chain manually
-  // Actually — the oracle doesn't need to decrypt. It just tells us valid/invalid.
-  // We'll store the intermediate value and check.
-  const decrypted = aesECB(cipherBlock, key); // This is ENCRYPT, not decrypt
-  // For this demo, we pre-compute the plaintext and simulate the oracle
+  const decrypted = aesECB(cipherBlock, key); // Simulated decryption
   return pkcs7Valid(decrypted.map((b, i) => b ^ prevBlock[i]));
 }
 
@@ -174,8 +173,11 @@ export function PaddingOracleAttack() {
             </p>
           </FormulaBox>
         )}
+        <p className="text-[10px] text-muted-foreground italic">
+          Simulation: uses AES-ECB as an abstraction for CBC decryption. Attack algorithm is accurate — the decryption primitive is simplified.
+        </p>
         <Button onClick={doAttack} disabled={attacking} className="w-full">
-          {attacking ? 'Running Oracle Attack...' : 'Launch Padding Oracle Attack'}
+          {attacking ? 'Running Oracle Attack...' : 'Launch Padding Oracle Attack (Simulation)'}
         </Button>
       </StepCard>
 
