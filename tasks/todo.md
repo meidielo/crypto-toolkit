@@ -45,7 +45,42 @@
 - [x] Security banner (BigInt timing, Math.random not CSPRNG)
 - [x] Inline nonce warning on ECDSA page
 
-## Phase 5: Future Enhancements
+## Phase 5: Cryptographic Composition (COMPLETE)
+- [x] AES-GCM Authenticated Encryption (CTR + GHASH over GF(2^128))
+- [x] Argon2id via WASM Web Worker (OWASP presets, timing comparison)
+- [x] Schnorr ZKP with cheating prover mode (soundness demo)
+- [x] TLS 1.3 Handshake (ECDHE + HKDF + ECDSA + AES-GCM)
+- [x] Web Crypto comparison buttons on ECDSA, AES, RSA
+- [x] CSPRNG everywhere (crypto.getRandomValues)
+
+## Phase 6: Performance Architecture (COMPLETE)
+- [x] useCryptoWorker hook with stale response guard (latestIdRef)
+- [x] useDebouncedValue hook for input throttling
+- [x] useStepMachine hook (deterministic FSM)
+- [x] crypto.worker.ts with BigInt serialization
+- [x] hash.worker.ts dedicated Argon2id WASM worker
+- [x] Debounced substitution analysis ngrams
+
+## Phase 7: Audit Fixes (COMPLETE)
+- [x] ShiftRows ghost cell positioning (destination-based)
+- [x] RSA generateRSAKeys max 100 attempt guard
+- [x] tonelliShanks 1000 iteration guards on all loops
+- [x] Nonce reuse s1=s2 validation
+- [x] RSA encrypt m >= n validation
+- [x] ECDSA q prime validation
+- [x] LWE q label corrected
+- [x] ESLint Math.random ban
+- [x] Precise timing attack warning (lists specific ops)
+- [x] identifyCurve exact parameter matching (not string)
+- [x] keyExpansion LRU-16 memoization
+- [x] Padding Oracle Attack (AES-CBC Vaudenay)
+- [x] Textbook RSA Malleability Attack
+- [x] Hash Length Extension Attack (Merkle-Damgard)
+- [x] Schnorr cheating prover (soundness)
+- [x] RFC 6979 HMAC-DRBG explanation
+- [x] Deployment security headers (CSP, X-Frame-Options, caching)
+
+## Future Enhancements
 - [ ] Menezes-Vanstone EC ElGamal (from christelbach)
 - [ ] Shamir Secret Sharing
 - [ ] Interactive curve visualization (F_p grid plot)
@@ -81,3 +116,15 @@
 - Zero console errors
 - Production build: 389KB JS (112KB gzipped), 63KB CSS (11KB gzipped)
 - 15 pages total across 5 categories
+
+## Review - Phase 5-7
+- 22 pages across 9 categories, all rendering and computing correctly
+- Zero console errors
+- Production build: 448KB JS (126KB gzipped), 69KB CSS (12KB gzipped)
+- Argon2id: runs in dedicated WASM Web Worker, OWASP default (19MB)
+- Web Crypto comparison on ECDSA, AES, RSA
+- All 21 audit items addressed
+- Deployment headers: CSP, X-Frame-Options, nosniff, no-referrer, Permissions-Policy
+- Attack demos: Padding Oracle, Textbook RSA, Hash Extension all functional
+- Schnorr cheating prover demonstrates soundness
+- RFC 6979 HMAC-DRBG construction documented in Nonce Reuse page
