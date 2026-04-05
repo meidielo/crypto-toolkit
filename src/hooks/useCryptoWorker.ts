@@ -25,6 +25,7 @@ export function useCryptoWorker<T = unknown>() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const pendingRef = useRef<Map<number, (data: { result: unknown; error: string | null }) => void>>(new Map());
+  const latestIdRef = useRef(0); // Track latest request to drop stale responses
 
   useEffect(() => {
     const worker = new Worker(
@@ -57,18 +58,22 @@ export function useCryptoWorker<T = unknown>() {
     if (!workerRef.current) return;
 
     const id = ++idCounter;
+    latestIdRef.current = id; // Mark this as the latest request
     setLoading(true);
     setError(null);
 
     const promise = new Promise<T>((resolve, reject) => {
       pendingRef.current.set(id, ({ result, error }) => {
-        setLoading(false);
+        // Drop stale responses — only update state if this is still the latest request
+        const isLatest = id === latestIdRef.current;
+        if (isLatest) setLoading(false);
+
         if (error) {
-          setError(error);
+          if (isLatest) setError(error);
           reject(error);
         } else {
           const deserialized = deserializeBigInts(result) as T;
-          setResult(deserialized);
+          if (isLatest) setResult(deserialized); // Only update if not superseded
           resolve(deserialized);
         }
       });
