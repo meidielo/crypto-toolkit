@@ -75,8 +75,14 @@ src/
     crypto-math.ts    # RSA, primality, factorization, ciphers, encoding, Paillier, DLog
     aes-math.ts       # AES S-Box, SubBytes, ShiftRows, MixColumns (GF(2^8)), AddRoundKey, KeyExpansion
     lwe-math.ts       # LWE matrix ops, key generation, encrypt, decrypt
-    web-crypto.ts     # Web Crypto API wrappers for constant-time comparison
+    web-crypto.ts     # Web Crypto API wrappers (HMAC, HKDF, AES-GCM, ECDH)
     utils.ts          # UI utility (cn)
+  hooks/
+    useCryptoWorker.ts   # Web Worker hook for offloading heavy crypto to a separate thread
+    useDebouncedCompute.ts # Debounced input hook to prevent recomputation on every keystroke
+    useStepMachine.ts    # Deterministic step state machine for multi-step workflows
+  workers/
+    crypto.worker.ts     # Web Worker with all math functions for non-blocking computation
   components/
     Sidebar.tsx       # Navigation sidebar with categorized tool links
     ThemeToggle.tsx    # Dark/light theme toggle

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useDebouncedValue } from '@/hooks/useDebouncedCompute';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -63,19 +64,24 @@ export function ECCalculator() {
   const B = parseBigInt(bStr);
   const p = parseBigInt(pStr);
 
+  // Debounce curve params to avoid re-validating on every keystroke
+  const debouncedA = useDebouncedValue(A, 300);
+  const debouncedB = useDebouncedValue(B, 300);
+  const debouncedP = useDebouncedValue(p, 300);
+
   const curveValid = useMemo(() => {
-    if (A === null || B === null || p === null) return { valid: false, reason: 'Enter all parameters' };
-    if (p < 3n) return { valid: false, reason: 'p must be >= 3' };
-    if (!isPrime(p)) return { valid: false, reason: 'p must be prime' };
-    const disc = discriminant(A, B, p);
+    if (debouncedA === null || debouncedB === null || debouncedP === null) return { valid: false, reason: 'Enter all parameters' };
+    if (debouncedP < 3n) return { valid: false, reason: 'p must be >= 3' };
+    if (!isPrime(debouncedP)) return { valid: false, reason: 'p must be prime' };
+    const disc = discriminant(debouncedA, debouncedB, debouncedP);
     if (disc === 0n) return { valid: false, reason: 'Singular curve (4A³ + 27B² ≡ 0 mod p)' };
     return { valid: true, reason: '', disc };
-  }, [A, B, p]);
+  }, [debouncedA, debouncedB, debouncedP]);
 
-  // Curve contradiction detection
+  // Curve contradiction detection (uses debounced values)
   const curveContradiction = useMemo(() => {
-    if (!curveValid.valid || A === null || B === null || p === null) return null;
-    const identified = identifyCurve(A, B, p);
+    if (!curveValid.valid || debouncedA === null || debouncedB === null || debouncedP === null) return null;
+    const identified = identifyCurve(debouncedA, debouncedB, debouncedP);
     const selectedPresetName = PRESET_CURVES[presetIdx]?.name || '';
     // Check if manually-edited params match a DIFFERENT known curve than selected
     if (identified && !selectedPresetName.includes(identified) && presetIdx >= 3) {
@@ -84,17 +90,18 @@ export function ECCalculator() {
     if (identified) return { type: 'identified' as const, message: `Standard curve: ${identified}` };
     if (presetIdx >= 3 && !identified) return { type: 'custom' as const, message: 'Custom parameters (not a recognized standard curve)' };
     return null;
-  }, [A, B, p, curveValid.valid, presetIdx]);
+  }, [debouncedA, debouncedB, debouncedP, curveValid.valid, presetIdx]);
 
+  // Points enumeration — debounced via debounced curve params
   const allPoints = useMemo(() => {
-    if (!curveValid.valid || A === null || B === null || p === null) return null;
-    if (p > 1009n) return null; // too many to enumerate
+    if (!curveValid.valid || debouncedA === null || debouncedB === null || debouncedP === null) return null;
+    if (debouncedP > 1009n) return null;
     try {
-      return getAllPointsFast(A, B, p);
+      return getAllPointsFast(debouncedA, debouncedB, debouncedP);
     } catch {
       return null;
     }
-  }, [A, B, p, curveValid.valid]);
+  }, [debouncedA, debouncedB, debouncedP, curveValid.valid]);
 
   function loadPreset(idx: number) {
     setPresetIdx(idx);

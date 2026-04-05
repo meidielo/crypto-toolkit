@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useDebouncedValue } from '@/hooks/useDebouncedCompute';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -21,11 +22,14 @@ export function SubstitutionAnalysis() {
   const [ciphertext, setCiphertext] = useState('');
   const [mapping, setMapping] = useState<Record<string, string>>({});
 
-  // Frequency analysis
+  // Debounce ciphertext to avoid re-computing ngrams on every keystroke
+  const debouncedCiphertext = useDebouncedValue(ciphertext, 300);
+
+  // Frequency analysis (uses debounced input)
   const freqs = useMemo(() => {
     const counts: Record<string, number> = {};
     let total = 0;
-    for (const c of ciphertext.toUpperCase()) {
+    for (const c of debouncedCiphertext.toUpperCase()) {
       if (c >= 'A' && c <= 'Z') {
         counts[c] = (counts[c] || 0) + 1;
         total++;
@@ -34,13 +38,13 @@ export function SubstitutionAnalysis() {
     return Object.entries(counts)
       .map(([char, count]) => ({ char, count, pct: total > 0 ? (count / total) * 100 : 0 }))
       .sort((a, b) => b.count - a.count);
-  }, [ciphertext]);
+  }, [debouncedCiphertext]);
 
   const totalLetters = freqs.reduce((s, f) => s + f.count, 0);
 
-  // Digraphs / Trigraphs
-  const digraphs = useMemo(() => sortedNgrams(countNgrams(ciphertext, 2)).slice(0, 15), [ciphertext]);
-  const trigraphs = useMemo(() => sortedNgrams(countNgrams(ciphertext, 3)).slice(0, 15), [ciphertext]);
+  // Digraphs / Trigraphs (debounced)
+  const digraphs = useMemo(() => sortedNgrams(countNgrams(debouncedCiphertext, 2)).slice(0, 15), [debouncedCiphertext]);
+  const trigraphs = useMemo(() => sortedNgrams(countNgrams(debouncedCiphertext, 3)).slice(0, 15), [debouncedCiphertext]);
 
   // Decoded text
   const decoded = useMemo(() => {
