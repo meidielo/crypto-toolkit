@@ -34,6 +34,12 @@ This toolkit uses JavaScript BigInt arithmetic which is **not constant-time**. R
 
 ### Post-Quantum Cryptography
 - **Lattice (LWE) Encryption** -- Learning With Errors demonstration: key generation (random matrix A, secret s, error e), encrypt a single bit, decrypt with error analysis. Explains why LWE is the basis for NIST ML-KEM (CRYSTALS-Kyber) and why it resists quantum attacks.
+- **Schnorr ZKP Protocol** -- Interactive zero-knowledge proof: Prover commits, Verifier challenges, Prover responds. Two-panel layout showing message flow. Proves knowledge of secret without revealing it.
+
+### Protocol Composition
+- **AES-GCM Authenticated Encryption** -- Full Galois/Counter Mode: AES-CTR stream cipher + GHASH polynomial authentication over GF(2^128). Shows counter blocks, per-block GHASH accumulator, and final authentication tag. Web Crypto comparison.
+- **Argon2id Key Derivation** -- Memory-hard password hashing via WASM (hash-wasm). Side-by-side SHA-256 timing comparison proving GPU resistance. Memory lane architecture visualization. OWASP-recommended presets.
+- **TLS 1.3 Handshake** -- Capstone module chaining ECDHE key exchange → HKDF key derivation → server authentication → AES-GCM encrypted application data. Full protocol state machine showing how primitives compose into HTTPS.
 
 ## Tech Stack
 
@@ -42,6 +48,7 @@ This toolkit uses JavaScript BigInt arithmetic which is **not constant-time**. R
 - **Tailwind CSS v4** + **shadcn/ui** -- Modern, polished UI with dark/light theme
 - **BigInt** -- Arbitrary precision arithmetic, no external math libraries
 - **Web Crypto API** -- `crypto.getRandomValues()` for CSPRNG, `crypto.subtle` for constant-time comparison
+- **hash-wasm** -- Argon2id compiled to WebAssembly for in-browser memory-hard hashing
 
 ## Getting Started
 
@@ -77,7 +84,7 @@ src/
     StateMatrix.tsx   # 4x4 hex byte grid + vector/matrix display components
     SecurityBanner.tsx # Persistent educational disclaimer (BigInt timing caveat)
     WebCryptoVerify.tsx # Reusable Web Crypto comparison component
-    pages/            # One component per tool/workflow (15 pages total)
+    pages/            # One component per tool/workflow (19 pages total)
     ui/               # shadcn/ui base components
   App.tsx             # Main app shell with sidebar + content routing
   main.tsx            # Entry point

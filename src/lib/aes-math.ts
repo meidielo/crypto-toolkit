@@ -205,3 +205,233 @@ export function aesRound(state: State, roundKey: State): AESRoundResult {
     afterAddRoundKey,
   };
 }
+
+// ============= Full AES-128 ECB (10 rounds) =============
+
+export function aesECB(block: number[], keyBytes: number[]): number[] {
+  let state = hexToState(block.map(b => b.toString(16).padStart(2, '0')).join(''));
+  const roundKeys = keyExpansion(keyBytes);
+
+  // Initial round key addition
+  state = addRoundKey(state, roundKeys[0]);
+
+  // Rounds 1-9: SubBytes, ShiftRows, MixColumns, AddRoundKey
+  for (let round = 1; round <= 9; round++) {
+    state = subBytes(state);
+    state = shiftRows(state);
+    state = mixColumns(state);
+    state = addRoundKey(state, roundKeys[round]);
+  }
+
+  // Round 10: SubBytes, ShiftRows, AddRoundKey (no MixColumns)
+  state = subBytes(state);
+  state = shiftRows(state);
+  state = addRoundKey(state, roundKeys[10]);
+
+  // Convert state back to byte array
+  const result: number[] = [];
+  for (let c = 0; c < 4; c++) {
+    for (let r = 0; r < 4; r++) {
+      result.push(state[c][r]);
+    }
+  }
+  return result;
+}
+
+// ============= AES-CTR Mode =============
+
+function incrementCounter(counter: number[]): number[] {
+  const result = [...counter];
+  for (let i = 15; i >= 12; i--) {
+    result[i] = (result[i] + 1) & 0xff;
+    if (result[i] !== 0) break;
+  }
+  return result;
+}
+
+export interface CTRBlockDetail {
+  blockIndex: number;
+  counter: number[];
+  encryptedCounter: number[];
+  plaintextBlock: number[];
+  ciphertextBlock: number[];
+}
+
+export function aesCTR(
+  plaintext: number[],
+  keyBytes: number[],
+  iv: number[] // 12 bytes
+): { ciphertext: number[]; blocks: CTRBlockDetail[] } {
+  const blocks: CTRBlockDetail[] = [];
+  const ciphertext: number[] = [];
+
+  // Initial counter: IV (12 bytes) || 0x00000001
+  let counter = [...iv, 0, 0, 0, 1];
+
+  for (let i = 0; i < plaintext.length; i += 16) {
+    const encryptedCounter = aesECB(counter, keyBytes);
+    const plaintextBlock = plaintext.slice(i, Math.min(i + 16, plaintext.length));
+    const ciphertextBlock = plaintextBlock.map((b, j) => b ^ encryptedCounter[j]);
+
+    blocks.push({
+      blockIndex: Math.floor(i / 16),
+      counter: [...counter],
+      encryptedCounter,
+      plaintextBlock,
+      ciphertextBlock,
+    });
+
+    ciphertext.push(...ciphertextBlock);
+    counter = incrementCounter(counter);
+  }
+
+  return { ciphertext, blocks };
+}
+
+// ============= GF(2^128) for GHASH =============
+
+// GF(2^128) multiplication using shift-and-XOR
+// Irreducible polynomial: x^128 + x^7 + x^2 + x + 1 → R = 0xe1 << 120
+export function gfMul128(X: number[], Y: number[]): number[] {
+  // X and Y are 16-byte arrays representing 128-bit values
+  const Z = new Array(16).fill(0);
+  const V = [...Y];
+
+  for (let i = 0; i < 16; i++) {
+    for (let bit = 7; bit >= 0; bit--) {
+      if ((X[i] >> bit) & 1) {
+        for (let j = 0; j < 16; j++) Z[j] ^= V[j];
+      }
+      // Right shift V by 1 bit
+      const lsb = V[15] & 1;
+      for (let j = 15; j > 0; j--) {
+        V[j] = ((V[j] >> 1) | ((V[j - 1] & 1) << 7)) & 0xff;
+      }
+      V[0] = (V[0] >> 1) & 0xff;
+      // If LSB was 1, XOR with R (0xe1 in first byte)
+      if (lsb) V[0] ^= 0xe1;
+    }
+  }
+  return Z;
+}
+
+// GHASH: polynomial hash for GCM authentication
+export interface GHASHStep {
+  blockIndex: number;
+  input: number[];
+  xorResult: number[];
+  mulResult: number[];
+}
+
+export function ghash(
+  H: number[], // hash key = AES_K(0^128)
+  aad: number[],
+  ciphertext: number[]
+): { tag: number[]; steps: GHASHStep[] } {
+  const steps: GHASHStep[] = [];
+
+  // Pad AAD and ciphertext to 16-byte blocks
+  const padBlock = (data: number[]): number[][] => {
+    const blocks: number[][] = [];
+    for (let i = 0; i < data.length; i += 16) {
+      const block = data.slice(i, i + 16);
+      while (block.length < 16) block.push(0);
+      blocks.push(block);
+    }
+    return blocks;
+  };
+
+  const aadBlocks = aad.length > 0 ? padBlock(aad) : [];
+  const ctBlocks = ciphertext.length > 0 ? padBlock(ciphertext) : [];
+
+  // Length block: 64-bit AAD length || 64-bit CT length (in bits)
+  const lenBlock = new Array(16).fill(0);
+  const aadBitLen = aad.length * 8;
+  const ctBitLen = ciphertext.length * 8;
+  lenBlock[4] = (aadBitLen >> 24) & 0xff;
+  lenBlock[5] = (aadBitLen >> 16) & 0xff;
+  lenBlock[6] = (aadBitLen >> 8) & 0xff;
+  lenBlock[7] = aadBitLen & 0xff;
+  lenBlock[12] = (ctBitLen >> 24) & 0xff;
+  lenBlock[13] = (ctBitLen >> 16) & 0xff;
+  lenBlock[14] = (ctBitLen >> 8) & 0xff;
+  lenBlock[15] = ctBitLen & 0xff;
+
+  let X = new Array(16).fill(0); // accumulator
+  let idx = 0;
+
+  // Process AAD blocks
+  for (const block of aadBlocks) {
+    const xorResult = X.map((b, i) => b ^ block[i]);
+    const mulResult = gfMul128(xorResult, H);
+    steps.push({ blockIndex: idx++, input: block, xorResult, mulResult });
+    X = mulResult;
+  }
+
+  // Process ciphertext blocks
+  for (const block of ctBlocks) {
+    const xorResult = X.map((b, i) => b ^ block[i]);
+    const mulResult = gfMul128(xorResult, H);
+    steps.push({ blockIndex: idx++, input: block, xorResult, mulResult });
+    X = mulResult;
+  }
+
+  // Process length block
+  const xorResult = X.map((b, i) => b ^ lenBlock[i]);
+  const mulResult = gfMul128(xorResult, H);
+  steps.push({ blockIndex: idx, input: lenBlock, xorResult, mulResult });
+  X = mulResult;
+
+  return { tag: X, steps };
+}
+
+// Full AES-GCM encrypt
+export interface AESGCMResult {
+  ciphertext: number[];
+  tag: number[];
+  ctrBlocks: CTRBlockDetail[];
+  ghashSteps: GHASHStep[];
+  H: number[]; // hash key
+  J0: number[]; // initial counter
+}
+
+export function aesGCM(
+  plaintext: number[],
+  keyBytes: number[],
+  iv: number[], // 12 bytes
+  aad: number[]
+): AESGCMResult {
+  // H = AES_K(0^128)
+  const zeroBlock = new Array(16).fill(0);
+  const H = aesECB(zeroBlock, keyBytes);
+
+  // J0 = IV || 0x00000001
+  const J0 = [...iv, 0, 0, 0, 1];
+
+  // CTR encrypt (starts from J0 + 1)
+  const { ciphertext, blocks: ctrBlocks } = aesCTR(plaintext, keyBytes, iv);
+
+  // GHASH for authentication tag
+  const { tag: ghashTag, steps: ghashSteps } = ghash(H, aad, ciphertext);
+
+  // Final tag = GHASH XOR E(K, J0)
+  const encJ0 = aesECB(J0, keyBytes);
+  const tag = ghashTag.map((b, i) => b ^ encJ0[i]);
+
+  return { ciphertext, tag, ctrBlocks, ghashSteps, H, J0 };
+}
+
+// Helper: bytes to hex
+export function bytesToHexAES(bytes: number[]): string {
+  return bytes.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Helper: hex to bytes
+export function hexToBytesAES(hex: string): number[] {
+  const clean = hex.replace(/\s+/g, '');
+  const bytes: number[] = [];
+  for (let i = 0; i < clean.length; i += 2) {
+    bytes.push(parseInt(clean.substring(i, i + 2), 16));
+  }
+  return bytes;
+}

@@ -16,6 +16,10 @@ import { DHWorkflow } from '@/components/pages/DHWorkflow';
 import { AESWorkflow } from '@/components/pages/AESWorkflow';
 import { NonceReuseAttack } from '@/components/pages/NonceReuseAttack';
 import { LWEWorkflow } from '@/components/pages/LWEWorkflow';
+import { SchnorrZKP } from '@/components/pages/SchnorrZKP';
+import { AESGCMWorkflow } from '@/components/pages/AESGCMWorkflow';
+import { Argon2Workflow } from '@/components/pages/Argon2Workflow';
+import { TLS13Workflow } from '@/components/pages/TLS13Workflow';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SecurityBanner } from '@/components/SecurityBanner';
 
@@ -34,7 +38,11 @@ export type Page =
   | 'diffie-hellman'
   | 'aes'
   | 'nonce-reuse'
-  | 'lwe';
+  | 'lwe'
+  | 'schnorr'
+  | 'aes-gcm'
+  | 'argon2'
+  | 'tls13';
 
 const PAGE_COMPONENTS: Record<Page, React.FC> = {
   'ec-calculator': ECCalculator,
@@ -52,6 +60,10 @@ const PAGE_COMPONENTS: Record<Page, React.FC> = {
   aes: AESWorkflow,
   'nonce-reuse': NonceReuseAttack,
   lwe: LWEWorkflow,
+  schnorr: SchnorrZKP,
+  'aes-gcm': AESGCMWorkflow,
+  argon2: Argon2Workflow,
+  tls13: TLS13Workflow,
 };
 
 const PAGE_TITLES: Record<Page, string> = {
@@ -70,6 +82,10 @@ const PAGE_TITLES: Record<Page, string> = {
   aes: 'AES-128 Round Visualization',
   'nonce-reuse': 'ECDSA Nonce Reuse Attack',
   lwe: 'Lattice (LWE) Encryption',
+  schnorr: 'Schnorr ZKP Protocol',
+  'aes-gcm': 'AES-GCM Authenticated Encryption',
+  argon2: 'Argon2id Key Derivation',
+  tls13: 'TLS 1.3 Handshake',
 };
 
 function useIsMobile() {
