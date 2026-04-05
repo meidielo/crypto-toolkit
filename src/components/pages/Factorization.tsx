@@ -163,7 +163,17 @@ export function Factorization() {
           <div className="flex gap-3">
             <div className="flex-1">
               <Label>Upper limit</Label>
-              <Input value={primeLimit} onChange={e => setPrimeLimit(e.target.value)} className="font-mono" placeholder="1000" />
+              <Input
+                value={primeLimit}
+                onChange={e => {
+                  const v = e.target.value.replace(/\D/g, '');
+                  const num = parseInt(v);
+                  if (v === '' || (num >= 0 && num <= 100000)) setPrimeLimit(v);
+                }}
+                maxLength={6}
+                className="font-mono"
+                placeholder="1000"
+              />
             </div>
             <Button onClick={listPrimes} className="self-end">List Primes</Button>
           </div>
