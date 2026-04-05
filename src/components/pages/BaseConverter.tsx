@@ -105,7 +105,7 @@ export function BaseConverter() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="hash">
-        <TabsList className="w-full flex overflow-x-auto">
+        <TabsList className="w-full flex">
           <TabsTrigger value="hash">Hashing</TabsTrigger>
           <TabsTrigger value="text">Text Encoding</TabsTrigger>
           <TabsTrigger value="number">Number Base</TabsTrigger>

@@ -147,7 +147,7 @@ export function RSACalculator() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="generate">
-        <TabsList className="w-full flex overflow-x-auto">
+        <TabsList className="w-full flex">
           <TabsTrigger value="generate">Generate Keys</TabsTrigger>
           <TabsTrigger value="encrypt">Encrypt / Decrypt</TabsTrigger>
           <TabsTrigger value="manual">Manual Keys</TabsTrigger>

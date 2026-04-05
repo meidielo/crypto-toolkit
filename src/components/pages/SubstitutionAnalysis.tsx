@@ -103,7 +103,7 @@ export function SubstitutionAnalysis() {
 
       {ciphertext && (
         <Tabs defaultValue="freq">
-          <TabsList className="w-full flex overflow-x-auto">
+          <TabsList className="w-full flex">
             <TabsTrigger value="freq">Frequencies</TabsTrigger>
             <TabsTrigger value="ngrams">Di/Trigraphs</TabsTrigger>
             <TabsTrigger value="decode">Decode</TabsTrigger>

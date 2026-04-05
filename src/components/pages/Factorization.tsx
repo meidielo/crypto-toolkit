@@ -69,9 +69,13 @@ export function Factorization() {
     }, 10);
   }
 
+  const [primesError, setPrimesError] = useState('');
+
   function listPrimes() {
+    setPrimesError('');
     const limit = parseInt(primeLimit);
-    if (!limit || limit < 2 || limit > 100000) return;
+    if (!limit || limit < 2) { setPrimesError('Limit must be >= 2'); return; }
+    if (limit > 100000) { setPrimesError('Limit must be <= 100,000. Enumerating primes beyond this range would freeze the browser — use the Primality Test in Modular Arithmetic for testing individual large numbers.'); return; }
     const primes: bigint[] = [];
     for (let i = 2n; i <= BigInt(limit); i++) {
       if (isPrime(i)) primes.push(i);
@@ -163,6 +167,7 @@ export function Factorization() {
             </div>
             <Button onClick={listPrimes} className="self-end">List Primes</Button>
           </div>
+          {primesError && <p className="text-sm text-destructive">{primesError}</p>}
           {primesList.length > 0 && (
             <div>
               <p className="text-sm text-muted-foreground mb-2">

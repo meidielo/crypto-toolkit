@@ -76,7 +76,7 @@ export function CipherTools() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="caesar">
-        <TabsList className="w-full flex overflow-x-auto">
+        <TabsList className="w-full flex">
           <TabsTrigger value="caesar">Caesar</TabsTrigger>
           <TabsTrigger value="vigenere">Vigenere</TabsTrigger>
           <TabsTrigger value="rot13">ROT13/Atbash</TabsTrigger>
