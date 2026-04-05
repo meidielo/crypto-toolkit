@@ -99,7 +99,7 @@ export function SubstitutionAnalysis() {
 
       {ciphertext && (
         <Tabs defaultValue="freq">
-          <TabsList className="w-full grid grid-cols-3">
+          <TabsList className="w-full flex overflow-x-auto">
             <TabsTrigger value="freq">Frequencies</TabsTrigger>
             <TabsTrigger value="ngrams">Di/Trigraphs</TabsTrigger>
             <TabsTrigger value="decode">Decode</TabsTrigger>
@@ -169,7 +169,7 @@ export function SubstitutionAnalysis() {
           </TabsContent>
 
           <TabsContent value="ngrams">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">Digraphs (Top 15)</CardTitle>
@@ -223,7 +223,7 @@ export function SubstitutionAnalysis() {
                   <CardTitle className="text-base">Substitution Table</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="grid grid-cols-13 gap-1">
+                  <div className="grid grid-cols-7 sm:grid-cols-13 gap-1">
                     {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => (
                       <div key={c} className="text-center">
                         <span className="text-xs font-mono font-bold block">{c}</span>

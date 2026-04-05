@@ -145,7 +145,7 @@ export function RSACalculator() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="generate">
-        <TabsList className="w-full grid grid-cols-3">
+        <TabsList className="w-full flex overflow-x-auto">
           <TabsTrigger value="generate">Generate Keys</TabsTrigger>
           <TabsTrigger value="encrypt">Encrypt / Decrypt</TabsTrigger>
           <TabsTrigger value="manual">Manual Keys</TabsTrigger>
@@ -158,7 +158,7 @@ export function RSACalculator() {
               <CardDescription>Generate random RSA key pairs for educational purposes</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="bits">Key Size (bits)</Label>
                   <Input id="bits" value={bitSize} onChange={e => setBitSize(e.target.value)} placeholder="64" className="font-mono" />
@@ -179,7 +179,7 @@ export function RSACalculator() {
         </TabsContent>
 
         <TabsContent value="encrypt">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Encrypt</CardTitle>
@@ -245,7 +245,7 @@ export function RSACalculator() {
               <CardDescription>Enter your own primes p and q to compute the full key pair</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Prime p</Label>
                   <Input value={manP} onChange={e => setManP(e.target.value)} className="font-mono" placeholder="61" />

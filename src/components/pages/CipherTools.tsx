@@ -76,7 +76,7 @@ export function CipherTools() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="caesar">
-        <TabsList className="w-full grid grid-cols-4">
+        <TabsList className="w-full flex overflow-x-auto">
           <TabsTrigger value="caesar">Caesar</TabsTrigger>
           <TabsTrigger value="vigenere">Vigenere</TabsTrigger>
           <TabsTrigger value="rot13">ROT13/Atbash</TabsTrigger>
@@ -85,7 +85,7 @@ export function CipherTools() {
 
         {/* Caesar */}
         <TabsContent value="caesar">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Caesar Cipher</CardTitle>
@@ -236,7 +236,7 @@ export function CipherTools() {
               <Button onClick={doFrequency} className="w-full">Analyze Frequencies</Button>
               {freqResult.length > 0 && (
                 <div className="space-y-2">
-                  <div className="grid grid-cols-13 gap-1">
+                  <div className="grid grid-cols-7 sm:grid-cols-13 gap-1">
                     {freqResult.map(({ char, pct }) => (
                       <div key={char} className="text-center">
                         <div

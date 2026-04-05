@@ -161,17 +161,17 @@ export function ECDSAWorkflow() {
 
       {/* Step 1: Setup */}
       <StepCard step={1} title="Setup: Curve & Keys" status={getStatus('setup')}>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div><Label className="text-xs">A</Label><Input value={aStr} onChange={e => setAStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">B</Label><Input value={bStr} onChange={e => setBStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">p (prime)</Label><Input value={pStr} onChange={e => setPStr(e.target.value)} className="font-mono" /></div>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div><Label className="text-xs">G.x</Label><Input value={gxStr} onChange={e => setGxStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">G.y</Label><Input value={gyStr} onChange={e => setGyStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">q (curve order)</Label><Input value={qStr} onChange={e => setQStr(e.target.value)} className="font-mono" /></div>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div><Label className="text-xs">d (private key)</Label><Input value={dStr} onChange={e => setDStr(e.target.value)} className="font-mono" /></div>
         </div>
         <Button onClick={doSetup} className="w-full">Compute Public Key Q = dG</Button>
@@ -205,7 +205,7 @@ export function ECDSAWorkflow() {
 
       {/* Step 3: Sign */}
       <StepCard step={3} title="Generate Signature (r, s)" status={getStatus('sign')}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">k (nonce, random)</Label><Input value={kStr} onChange={e => setKStr(e.target.value)} className="font-mono" /></div>
         </div>
         <Button onClick={doSign} className="w-full">Compute Signature</Button>

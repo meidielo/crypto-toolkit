@@ -78,7 +78,7 @@ export function DHWorkflow() {
 
       {/* Setup */}
       <StepCard step={1} title="Public Parameters" status={getStatus('setup')}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">p (prime modulus)</Label><Input value={pStr} onChange={e => setPStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">g (generator)</Label><Input value={gStr} onChange={e => setGStr(e.target.value)} className="font-mono" /></div>
         </div>

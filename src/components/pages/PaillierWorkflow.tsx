@@ -122,7 +122,7 @@ export function PaillierWorkflow() {
 
       {/* Step 1: Key Generation */}
       <StepCard step={1} title="Key Generation" status={getStatus('keygen')}>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div><Label className="text-xs">p (prime)</Label><Input value={pStr} onChange={e => setPStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">q (prime)</Label><Input value={qStr} onChange={e => setQStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">g (generator)</Label><Input value={gStr} onChange={e => setGStr(e.target.value)} className="font-mono" /></div>
@@ -147,7 +147,7 @@ export function PaillierWorkflow() {
 
       {/* Step 2: Encrypt */}
       <StepCard step={2} title="Encrypt a Message" status={getStatus('encrypt')}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">m (message integer)</Label><Input value={mStr} onChange={e => setMStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">r (random, gcd(r,n)=1)</Label><Input value={rStr} onChange={e => setRStr(e.target.value)} className="font-mono" /></div>
         </div>

@@ -90,7 +90,7 @@ export function RSAAttackWorkflow() {
       </Card>
 
       <StepCard step={1} title="Input: Public Key & Ciphertext" status={result ? 'complete' : 'active'}>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div><Label className="text-xs">n (modulus)</Label><Input value={nStr} onChange={e => setNStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">e (public exponent)</Label><Input value={eStr} onChange={e => setEStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">C (ciphertext)</Label><Input value={cStr} onChange={e => setCStr(e.target.value)} className="font-mono" /></div>

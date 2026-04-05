@@ -105,7 +105,7 @@ export function BaseConverter() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="hash">
-        <TabsList className="w-full grid grid-cols-3">
+        <TabsList className="w-full flex overflow-x-auto">
           <TabsTrigger value="hash">Hashing</TabsTrigger>
           <TabsTrigger value="text">Text Encoding</TabsTrigger>
           <TabsTrigger value="number">Number Base</TabsTrigger>
@@ -251,7 +251,7 @@ export function BaseConverter() {
                 <Label>Number</Label>
                 <Input value={numInput} onChange={e => setNumInput(e.target.value)} className="font-mono" placeholder="ff" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>From Base</Label>
                   <Input value={fromBase} onChange={e => setFromBase(e.target.value)} className="font-mono" placeholder="16" />

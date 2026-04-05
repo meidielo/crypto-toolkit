@@ -147,7 +147,7 @@ export function ECCalculator() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {PRESET_CURVES.map((c, i) => (
               <Badge
                 key={i}
@@ -159,7 +159,7 @@ export function ECCalculator() {
               </Badge>
             ))}
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <Label htmlFor="ec-a">A</Label>
               <Input id="ec-a" value={aStr} onChange={e => setAStr(e.target.value)} placeholder="0" className="font-mono" />
@@ -192,7 +192,7 @@ export function ECCalculator() {
       </Card>
 
       <Tabs defaultValue="add" className="w-full">
-        <TabsList className="w-full grid grid-cols-3">
+        <TabsList className="w-full flex overflow-x-auto">
           <TabsTrigger value="add">Point Addition</TabsTrigger>
           <TabsTrigger value="mul">Scalar Multiply</TabsTrigger>
           <TabsTrigger value="points">Points Table</TabsTrigger>
@@ -206,7 +206,7 @@ export function ECCalculator() {
               <CardDescription>Add two points on the curve</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="font-semibold">Point P</Label>
                   <div className="grid grid-cols-2 gap-2">
@@ -284,7 +284,7 @@ export function ECCalculator() {
               <CardDescription>Multiply a point by a scalar using double-and-add</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <Label htmlFor="sk">k (scalar)</Label>
                   <Input id="sk" value={sk} onChange={e => setSk(e.target.value)} placeholder="5" className="font-mono" />

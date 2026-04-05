@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Sidebar } from '@/components/Sidebar';
 import { ECCalculator } from '@/components/pages/ECCalculator';
@@ -59,10 +59,27 @@ const PAGE_TITLES: Record<Page, string> = {
   'diffie-hellman': 'Diffie-Hellman Key Exchange',
 };
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return isMobile;
+}
+
 export default function App() {
   const [page, setPage] = useState<Page>('ec-calculator');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const isMobile = useIsMobile();
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const PageComponent = PAGE_COMPONENTS[page];
+
+  // Auto-close sidebar when switching to mobile
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(false);
+    else setSidebarOpen(true);
+  }, [isMobile]);
 
   return (
     <TooltipProvider>
@@ -72,25 +89,26 @@ export default function App() {
           onPageChange={setPage}
           open={sidebarOpen}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
+          isMobile={isMobile}
         />
-        <main className="flex-1 overflow-auto">
-          <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-background/80 backdrop-blur-sm px-6 py-3">
-            <div className="flex items-center gap-3">
-              {!sidebarOpen && (
+        <main className="flex-1 overflow-auto min-w-0">
+          <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-background/80 backdrop-blur-sm px-4 md:px-6 py-3 gap-2">
+            <div className="flex items-center gap-2 md:gap-3 min-w-0">
+              {(!sidebarOpen || isMobile) && (
                 <button
                   onClick={() => setSidebarOpen(true)}
-                  className="p-1.5 rounded-md hover:bg-muted text-muted-foreground"
+                  className="p-1.5 rounded-md hover:bg-muted text-muted-foreground shrink-0"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M3 12h18M3 6h18M3 18h18" />
                   </svg>
                 </button>
               )}
-              <h1 className="text-xl font-semibold tracking-tight">{PAGE_TITLES[page]}</h1>
+              <h1 className="text-base md:text-xl font-semibold tracking-tight truncate">{PAGE_TITLES[page]}</h1>
             </div>
             <ThemeToggle />
           </header>
-          <div className="p-6 max-w-6xl mx-auto">
+          <div className="p-4 md:p-6 max-w-6xl mx-auto">
             <PageComponent />
           </div>
         </main>

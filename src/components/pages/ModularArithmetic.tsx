@@ -96,7 +96,7 @@ export function ModularArithmetic() {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Modular Inverse */}
       <CalcCard title="Modular Inverse" description="Find a⁻¹ mod m such that a × a⁻¹ ≡ 1 (mod m)">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <Label className="text-xs">a</Label>
             <Input value={invA} onChange={e => setInvA(e.target.value)} className="font-mono" placeholder="3" />
@@ -129,7 +129,7 @@ export function ModularArithmetic() {
 
       {/* Modular Exponentiation */}
       <CalcCard title="Modular Exponentiation" description="Compute base^exp mod m efficiently">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div>
             <Label className="text-xs">base</Label>
             <Input value={powBase} onChange={e => setPowBase(e.target.value)} className="font-mono" placeholder="2" />
@@ -159,7 +159,7 @@ export function ModularArithmetic() {
 
       {/* GCD / Extended GCD */}
       <CalcCard title="GCD / Extended GCD" description="Greatest common divisor and Bézout coefficients: ax + by = gcd(a,b)">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <Label className="text-xs">a</Label>
             <Input value={gcdA} onChange={e => setGcdA(e.target.value)} className="font-mono" placeholder="240" />
@@ -214,7 +214,7 @@ export function ModularArithmetic() {
 
       {/* Square Root mod p */}
       <CalcCard title="Square Root mod p" description="Find x such that x² ≡ a (mod p), using Tonelli-Shanks">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <Label className="text-xs">a</Label>
             <Input value={sqrtA} onChange={e => setSqrtA(e.target.value)} className="font-mono" placeholder="4" />
@@ -248,7 +248,7 @@ export function ModularArithmetic() {
 
       {/* Legendre Symbol */}
       <CalcCard title="Legendre Symbol (a/p)" description="Determine if a is a quadratic residue mod p">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <Label className="text-xs">a</Label>
             <Input value={legA} onChange={e => setLegA(e.target.value)} className="font-mono" placeholder="2" />

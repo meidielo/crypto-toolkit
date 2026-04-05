@@ -125,7 +125,7 @@ export function ElGamalWorkflow() {
 
       {/* Setup */}
       <StepCard step={1} title="Setup: Public & Private Keys" status={getStatus('setup')}>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div><Label className="text-xs">p (prime)</Label><Input value={pStr} onChange={e => setPStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">g (generator)</Label><Input value={gStr} onChange={e => setGStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">x (private key)</Label><Input value={xStr} onChange={e => setXStr(e.target.value)} className="font-mono" /></div>
@@ -143,7 +143,7 @@ export function ElGamalWorkflow() {
 
       {/* Encrypt */}
       <StepCard step={2} title="Encrypt Message" status={getStatus('encrypt')}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">m (message)</Label><Input value={mStr} onChange={e => setMStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">r (random nonce)</Label><Input value={rStr} onChange={e => setRStr(e.target.value)} className="font-mono" /></div>
         </div>
@@ -164,7 +164,7 @@ export function ElGamalWorkflow() {
       {/* Homomorphic */}
       <StepCard step={3} title="Homomorphic Addition" status={getStatus('homomorphic')}>
         <p className="text-xs text-muted-foreground">Encrypt a second message, then multiply ciphertexts to add plaintexts.</p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">m₂</Label><Input value={m2Str} onChange={e => setM2Str(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">r₂</Label><Input value={r2Str} onChange={e => setR2Str(e.target.value)} className="font-mono" /></div>
         </div>
@@ -189,7 +189,7 @@ export function ElGamalWorkflow() {
 
       {/* Decrypt */}
       <StepCard step={4} title="Decrypt" status={getStatus('decrypt')}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">c₁</Label><Input value={decC1Str} onChange={e => setDecC1Str(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">c₂</Label><Input value={decC2Str} onChange={e => setDecC2Str(e.target.value)} className="font-mono" /></div>
         </div>
