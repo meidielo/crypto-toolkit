@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StepCard, ComputationRow, FormulaBox } from '@/components/StepCard';
+import HashWorker from '@/workers/hash.worker.ts?worker';
 
 type Preset = 'weak' | 'owasp' | 'strong';
 
@@ -17,16 +18,40 @@ const PRESETS: Record<Preset, { label: string; memory: number; iterations: numbe
 export function Argon2Workflow() {
   const [password, setPassword] = useState('mypassword123');
   const [salt, setSalt] = useState('somesalt');
-  const [preset, setPreset] = useState<Preset>('weak');
-  const [memoryKB, setMemoryKB] = useState('64');
-  const [iterations, setIterations] = useState('1');
+  const [preset, setPreset] = useState<Preset>('owasp'); // Default to OWASP minimum
+  const [memoryKB, setMemoryKB] = useState('19456');
+  const [iterations, setIterations] = useState('2');
   const [parallelism, setParallelism] = useState('1');
   const [hashLength, setHashLength] = useState('32');
 
   const [computing, setComputing] = useState(false);
-  const [argonResult, setArgonResult] = useState<{ hash: string; timeMs: number } | null>(null);
+  const [workerReady, setWorkerReady] = useState(false);
+  const [argonResult, setArgonResult] = useState<{ hash: string; timeMs: number; memorySize: number } | null>(null);
   const [shaResult, setShaResult] = useState<{ hash: string; timeMs: number } | null>(null);
   const [error, setError] = useState('');
+
+  const workerRef = useRef<Worker | null>(null);
+  const idRef = useRef(0);
+
+  // Initialize worker once, WASM loads on worker startup
+  useEffect(() => {
+    const worker = new HashWorker();
+    worker.onmessage = (e: MessageEvent) => {
+      if (e.data.type === 'ready') {
+        setWorkerReady(true);
+        return;
+      }
+      const { result, error: err } = e.data;
+      setComputing(false);
+      if (err) {
+        setError(err);
+      } else if (result) {
+        setArgonResult(result);
+      }
+    };
+    workerRef.current = worker;
+    return () => worker.terminate();
+  }, []);
 
   function loadPreset(p: Preset) {
     setPreset(p);
@@ -42,44 +67,30 @@ export function Argon2Workflow() {
     setArgonResult(null);
     setShaResult(null);
 
-    try {
-      // Dynamic import to avoid loading WASM until needed
-      const { argon2id } = await import('hash-wasm');
+    const mem = parseInt(memoryKB);
+    const iter = parseInt(iterations);
+    const par = parseInt(parallelism);
+    const hLen = parseInt(hashLength);
 
-      // Argon2id
-      const mem = parseInt(memoryKB);
-      const iter = parseInt(iterations);
-      const par = parseInt(parallelism);
-      const hLen = parseInt(hashLength);
+    if (mem < 8 || mem > 262144) { setError('Memory must be 8-262144 KB'); setComputing(false); return; }
+    if (iter < 1 || iter > 10) { setError('Iterations must be 1-10'); setComputing(false); return; }
 
-      if (mem < 8 || mem > 262144) { setError('Memory must be 8-262144 KB'); setComputing(false); return; }
-      if (iter < 1 || iter > 10) { setError('Iterations must be 1-10'); setComputing(false); return; }
+    // Argon2id runs in Web Worker — UI stays responsive even with 19MB+ memory
+    const id = ++idRef.current;
+    workerRef.current?.postMessage({
+      id, password, salt,
+      memorySize: mem, iterations: iter,
+      parallelism: par, hashLength: hLen,
+    });
 
-      const t0 = performance.now();
-      const argonHash = await argon2id({
-        password,
-        salt,
-        parallelism: par,
-        iterations: iter,
-        memorySize: mem,
-        hashLength: hLen,
-        outputType: 'hex',
-      });
-      const argonTime = performance.now() - t0;
-      setArgonResult({ hash: argonHash, timeMs: Math.round(argonTime) });
-
-      // SHA-256 for comparison
-      const t1 = performance.now();
-      const encoder = new TextEncoder();
-      const data = encoder.encode(password);
-      const sha256Buf = await crypto.subtle.digest('SHA-256', data);
-      const shaTime = performance.now() - t1;
-      const shaHash = Array.from(new Uint8Array(sha256Buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-      setShaResult({ hash: shaHash, timeMs: Math.round(shaTime * 1000) / 1000 });
-    } catch (e) {
-      setError(String(e));
-    }
-    setComputing(false);
+    // SHA-256 on main thread (instant — proves the speed difference)
+    const t1 = performance.now();
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const sha256Buf = await crypto.subtle.digest('SHA-256', data);
+    const shaTime = performance.now() - t1;
+    const shaHash = Array.from(new Uint8Array(sha256Buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    setShaResult({ hash: shaHash, timeMs: Math.round(shaTime * 1000) / 1000 });
   }
 
   const speedRatio = argonResult && shaResult && shaResult.timeMs > 0
@@ -122,9 +133,14 @@ export function Argon2Workflow() {
           <div><Label className="text-xs">Parallelism</Label><Input value={parallelism} onChange={e => setParallelism(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">Hash Length</Label><Input value={hashLength} onChange={e => setHashLength(e.target.value)} className="font-mono" /></div>
         </div>
-        <Button onClick={doCompute} disabled={computing} className="w-full">
-          {computing ? 'Computing (WASM)...' : 'Hash with Argon2id + SHA-256'}
+        <Button onClick={doCompute} disabled={computing || !workerReady} className="w-full">
+          {!workerReady ? 'Loading WASM Worker...' : computing ? 'Computing in Web Worker...' : 'Hash with Argon2id + SHA-256'}
         </Button>
+        {computing && (
+          <p className="text-xs text-muted-foreground text-center">
+            Argon2id is running in a Web Worker — UI stays responsive. Try scrolling or clicking while it computes.
+          </p>
+        )}
         {error && <p className="text-sm text-destructive">{error}</p>}
       </StepCard>
 
@@ -135,8 +151,8 @@ export function Argon2Workflow() {
             <FormulaBox>
               <ComputationRow label="Hash (hex)" value={argonResult.hash} highlight />
               <ComputationRow label="Time" value={`${argonResult.timeMs} ms`} />
-              <ComputationRow label="Memory used" value={`${memoryKB} KB (${(parseInt(memoryKB) / 1024).toFixed(1)} MB)`} />
-              <ComputationRow label="Engine" value="hash-wasm (Argon2id compiled to WebAssembly)" />
+              <ComputationRow label="Memory used" value={`${argonResult.memorySize} KB (${(argonResult.memorySize / 1024).toFixed(1)} MB)`} />
+              <ComputationRow label="Engine" value="hash-wasm WASM in Web Worker (UI stayed responsive)" />
             </FormulaBox>
           </StepCard>
 
