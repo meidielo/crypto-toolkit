@@ -20,6 +20,7 @@ import { SchnorrZKP } from '@/components/pages/SchnorrZKP';
 import { AESGCMWorkflow } from '@/components/pages/AESGCMWorkflow';
 import { Argon2Workflow } from '@/components/pages/Argon2Workflow';
 import { TLS13Workflow } from '@/components/pages/TLS13Workflow';
+import { ShamirSSS } from '@/components/pages/ShamirSSS';
 import { PaddingOracleAttack } from '@/components/pages/PaddingOracleAttack';
 import { TextbookRSAAttack } from '@/components/pages/TextbookRSAAttack';
 import { HashExtensionAttack } from '@/components/pages/HashExtensionAttack';
@@ -48,7 +49,8 @@ export type Page =
   | 'tls13'
   | 'padding-oracle'
   | 'textbook-rsa'
-  | 'hash-extension';
+  | 'hash-extension'
+  | 'shamir';
 
 const PAGE_COMPONENTS: Record<Page, React.FC> = {
   'ec-calculator': ECCalculator,
@@ -73,6 +75,7 @@ const PAGE_COMPONENTS: Record<Page, React.FC> = {
   'padding-oracle': PaddingOracleAttack,
   'textbook-rsa': TextbookRSAAttack,
   'hash-extension': HashExtensionAttack,
+  shamir: ShamirSSS,
 };
 
 const PAGE_TITLES: Record<Page, string> = {
@@ -98,6 +101,7 @@ const PAGE_TITLES: Record<Page, string> = {
   'padding-oracle': 'Padding Oracle Attack',
   'textbook-rsa': 'Textbook RSA Attack',
   'hash-extension': 'Hash Length Extension Attack',
+  shamir: 'Shamir Secret Sharing',
 };
 
 function useIsMobile() {

@@ -235,6 +235,17 @@ const NAV_ITEMS: NavItem[] = [
       </svg>
     ),
   },
+  {
+    id: 'shamir',
+    label: 'Shamir Secret Sharing',
+    category: 'Workflows',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <circle cx="12" cy="12" r="3" /><circle cx="19" cy="5" r="2" /><circle cx="5" cy="5" r="2" /><circle cx="19" cy="19" r="2" /><circle cx="5" cy="19" r="2" />
+        <path d="M12 9V5M15 12h4M12 15v4M9 12H5" />
+      </svg>
+    ),
+  },
 ];
 
 interface SidebarProps {
