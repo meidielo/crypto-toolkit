@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StepCard, ComputationRow, FormulaBox } from '@/components/StepCard';
-import { webCryptoECDH, hmacSHA256, hkdfExtract, hkdfExpand, bytesToHex, webCryptoAESGCM } from '@/lib/web-crypto';
+import { webCryptoECDH, hkdfExtract, hkdfExpand, bytesToHex, webCryptoAESGCM } from '@/lib/web-crypto';
 
 type Phase = 'hello' | 'keyexchange' | 'derive' | 'auth' | 'appdata' | 'done';
 
@@ -27,6 +27,8 @@ export function TLS13Workflow() {
 
   // Auth
   const [transcriptHash, setTranscriptHash] = useState('');
+  const [serverSigHex, setServerSigHex] = useState('');
+  const [serverCertPubX, setServerCertPubX] = useState('');
   const [serverSigValid, setServerSigValid] = useState(false);
 
   // App Data
@@ -84,12 +86,28 @@ export function TLS13Workflow() {
       const hash = bytesToHex(new Uint8Array(hashBuf));
       setTranscriptHash(hash);
 
-      // Server "signs" the transcript (simulated — in real TLS, server uses its certificate's private key)
-      const hmacKey = new Uint8Array(serverKey.match(/.{2}/g)!.map(h => parseInt(h, 16)));
-      const sig = await hmacSHA256(hmacKey, new Uint8Array(hashBuf));
-      // Verify (same computation — HMAC is deterministic)
-      const sig2 = await hmacSHA256(hmacKey, new Uint8Array(hashBuf));
-      setServerSigValid(bytesToHex(sig) === bytesToHex(sig2));
+      // Server signs transcript with ECDSA P-256 (real TLS 1.3 uses certificate's private key)
+      const certKeys = await crypto.subtle.generateKey(
+        { name: 'ECDSA', namedCurve: 'P-256' },
+        true,
+        ['sign', 'verify']
+      );
+      const certPubJwk = await crypto.subtle.exportKey('jwk', certKeys.publicKey);
+      setServerCertPubX(certPubJwk.x || '');
+      const hashBufCopy = hashBuf.slice(0) as ArrayBuffer;
+      const signature = await crypto.subtle.sign(
+        { name: 'ECDSA', hash: 'SHA-256' },
+        certKeys.privateKey,
+        hashBufCopy
+      );
+      setServerSigHex(bytesToHex(new Uint8Array(signature)).substring(0, 40) + '...');
+      const verified = await crypto.subtle.verify(
+        { name: 'ECDSA', hash: 'SHA-256' },
+        certKeys.publicKey,
+        signature,
+        hashBuf
+      );
+      setServerSigValid(verified);
 
       setPhase('auth');
     } catch (e) { setError(String(e)); }
@@ -204,10 +222,12 @@ export function TLS13Workflow() {
             <div className="flex gap-2"><Badge variant="outline" className="text-xs">ECDSA</Badge><Badge variant="outline" className="text-xs">SHA-256</Badge></div>
             <FormulaBox>
               <ComputationRow label="Transcript hash" value={transcriptHash.substring(0, 40) + '...'} />
-              <ComputationRow label="Server signature" value={serverSigValid ? 'Valid' : 'Invalid'} highlight />
+              <ComputationRow label="Server cert pub (x)" value={serverCertPubX} />
+              <ComputationRow label="ECDSA signature" value={serverSigHex} />
+              <ComputationRow label="Verification" value={serverSigValid ? 'VALID' : 'INVALID'} highlight />
               <p className="text-xs text-muted-foreground mt-1">
-                In real TLS 1.3, the server signs the transcript with its certificate's ECDSA private key.
-                The client verifies using the server's public certificate.
+                Uses real ECDSA P-256 via crypto.subtle.sign/verify (constant-time native).
+                In production TLS 1.3, the server's key comes from a CA-signed X.509 certificate.
               </p>
             </FormulaBox>
             <div>

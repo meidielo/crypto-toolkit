@@ -146,6 +146,96 @@ export function scalarMultiplyWithSteps(
   return { result, steps };
 }
 
+// ============= Montgomery Ladder (constant-time scalar multiplication) =============
+
+export interface MontgomeryStep {
+  bit: number;
+  bitValue: number;
+  R0: ECPoint;
+  R1: ECPoint;
+  operation: string;
+}
+
+export function montgomeryLadder(
+  k: bigint,
+  P: ECPoint,
+  A: bigint,
+  p: bigint
+): { result: ECPoint; steps: MontgomeryStep[] } {
+  if (k === 0n || isInfinity(P)) return { result: INFINITY, steps: [] };
+  if (k < 0n) {
+    k = -k;
+    P = { x: P.x, y: mod(-P.y, p) };
+  }
+
+  const binary = k.toString(2);
+  const steps: MontgomeryStep[] = [];
+  let R0 = INFINITY;
+  let R1 = { ...P };
+
+  for (let i = 0; i < binary.length; i++) {
+    const bitVal = parseInt(binary[i]);
+    if (bitVal === 0) {
+      R1 = pointAdd(R0, R1, A, p);
+      R0 = pointDouble(R0, A, p);
+    } else {
+      R0 = pointAdd(R0, R1, A, p);
+      R1 = pointDouble(R1, A, p);
+    }
+    steps.push({
+      bit: i,
+      bitValue: bitVal,
+      R0: { ...R0 },
+      R1: { ...R1 },
+      operation: bitVal === 0 ? 'R1=R0+R1, R0=2R0' : 'R0=R0+R1, R1=2R1',
+    });
+  }
+  return { result: R0, steps };
+}
+
+// ============= Baby-step Giant-step ECDLP =============
+
+export function babyGiantStep(
+  P: ECPoint,
+  Q: ECPoint,
+  A: bigint,
+  p: bigint,
+  order: bigint
+): { k: bigint | null; babySteps: number; giantSteps: number; totalOps: number } {
+  // Find k such that kP = Q
+  // m = ceil(sqrt(order))
+  let m = 1n;
+  while (m * m < order) m++;
+
+  // Baby steps: compute jP for j = 0..m-1, store in map
+  const babyTable = new Map<string, bigint>();
+  let current = INFINITY;
+  for (let j = 0n; j < m; j++) {
+    const key = isInfinity(current) ? 'INF' : `${current.x},${current.y}`;
+    babyTable.set(key, j);
+    current = pointAdd(current, P, A, p);
+  }
+
+  // Giant step: mP
+  const mP = scalarMultiply(m, P, A, p);
+  // Negate for subtraction: -mP
+  const negMP = isInfinity(mP) ? INFINITY : { x: mP.x, y: mod(-mP.y, p) };
+
+  // Giant steps: compute Q - i*mP for i = 0..m-1
+  let gamma = { ...Q };
+  for (let i = 0n; i < m; i++) {
+    const key = isInfinity(gamma) ? 'INF' : `${gamma.x},${gamma.y}`;
+    const j = babyTable.get(key);
+    if (j !== undefined) {
+      const k = mod(i * m + j, order);
+      return { k, babySteps: Number(m), giantSteps: Number(i + 1n), totalOps: Number(m + i + 1n) };
+    }
+    gamma = pointAdd(gamma, negMP, A, p);
+  }
+
+  return { k: null, babySteps: Number(m), giantSteps: Number(m), totalOps: Number(2n * m) };
+}
+
 export function getPointOrder(P: ECPoint, A: bigint, _B: bigint, p: bigint): bigint {
   if (isInfinity(P)) return 1n;
   let Q = { ...P };
