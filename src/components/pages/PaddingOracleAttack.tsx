@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { StepCard, ComputationRow, FormulaBox } from '@/components/StepCard';
 import { InlineWarning } from '@/components/SecurityBanner';
-import { aesECB, bytesToHexAES, hexToBytesAES } from '@/lib/aes-math';
+import { aesECB, aesECBDecrypt, bytesToHexAES, hexToBytesAES } from '@/lib/aes-math';
 
 // PKCS#7 padding
 function pkcs7Pad(data: number[], blockSize: number): number[] {
@@ -38,15 +38,10 @@ function aesCBCEncrypt(plaintext: number[], key: number[], iv: number[]): number
 }
 
 // The "padding oracle" — returns true if decrypted block has valid PKCS#7
-// SIMULATION: This oracle uses AES-ECB encrypt (not AES-CBC decrypt) as an
-// abstraction. In a real padding oracle attack, the server performs AES-CBC
-// decryption (inverse S-Box, inverse ShiftRows, inverse MixColumns) and
-// returns valid/invalid padding. This demo abstracts that to focus on the
-// attack logic: byte-by-byte recovery via XOR manipulation of the previous
-// ciphertext block. The attack algorithm is accurate — the decryption
-// primitive is simplified for educational clarity.
+// Real AES-CBC padding oracle: performs actual AES decryption using inverse cipher
+// (InvSubBytes, InvShiftRows, InvMixColumns, AddRoundKey) then checks PKCS#7 padding.
 function paddingOracle(cipherBlock: number[], prevBlock: number[], key: number[]): boolean {
-  const decrypted = aesECB(cipherBlock, key); // Simulated decryption
+  const decrypted = aesECBDecrypt(cipherBlock, key); // Real AES-128 inverse cipher
   return pkcs7Valid(decrypted.map((b, i) => b ^ prevBlock[i]));
 }
 
@@ -173,11 +168,8 @@ export function PaddingOracleAttack() {
             </p>
           </FormulaBox>
         )}
-        <p className="text-[10px] text-muted-foreground italic">
-          Simulation: uses AES-ECB as an abstraction for CBC decryption. Attack algorithm is accurate — the decryption primitive is simplified.
-        </p>
         <Button onClick={doAttack} disabled={attacking} className="w-full">
-          {attacking ? 'Running Oracle Attack...' : 'Launch Padding Oracle Attack (Simulation)'}
+          {attacking ? 'Running Oracle Attack...' : 'Launch Padding Oracle Attack'}
         </Button>
       </StepCard>
 

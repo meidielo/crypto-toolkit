@@ -259,6 +259,103 @@ export function aesECB(block: number[], keyBytes: number[]): number[] {
   return result;
 }
 
+// ============= AES Inverse Operations (for decryption) =============
+
+// Inverse S-Box (generated from SBOX)
+export const INV_SBOX: number[] = (() => {
+  const inv = new Array(256).fill(0);
+  for (let i = 0; i < 256; i++) inv[SBOX[i]] = i;
+  return inv;
+})();
+
+export function invSubBytes(state: State): State {
+  const result = copyState(state);
+  for (let c = 0; c < 4; c++) {
+    for (let r = 0; r < 4; r++) {
+      result[c][r] = INV_SBOX[state[c][r]];
+    }
+  }
+  return result;
+}
+
+// Inverse ShiftRows: right-shift rows by 0,1,2,3
+export function invShiftRows(state: State): State {
+  const result = copyState(state);
+  for (let r = 1; r < 4; r++) {
+    const row = [state[0][r], state[1][r], state[2][r], state[3][r]];
+    for (let c = 0; c < 4; c++) {
+      result[c][r] = row[(c - r + 4) % 4];
+    }
+  }
+  return result;
+}
+
+// Inverse MixColumns matrix: [[14,11,13,9],[9,14,11,13],[13,9,14,11],[11,13,9,14]]
+export const INV_MIX_MATRIX = [
+  [14, 11, 13, 9],
+  [9, 14, 11, 13],
+  [13, 9, 14, 11],
+  [11, 13, 9, 14],
+];
+
+export function invMixColumns(state: State): State {
+  const result = copyState(state);
+  for (let c = 0; c < 4; c++) {
+    const col = [state[c][0], state[c][1], state[c][2], state[c][3]];
+    for (let r = 0; r < 4; r++) {
+      result[c][r] =
+        gfMul(INV_MIX_MATRIX[r][0], col[0]) ^
+        gfMul(INV_MIX_MATRIX[r][1], col[1]) ^
+        gfMul(INV_MIX_MATRIX[r][2], col[2]) ^
+        gfMul(INV_MIX_MATRIX[r][3], col[3]);
+    }
+  }
+  return result;
+}
+
+// Full AES-128 ECB Decryption (FIPS 197 Section 5.3 — Inverse Cipher)
+export function aesECBDecrypt(block: number[], keyBytes: number[]): number[] {
+  let state = hexToState(block.map(b => b.toString(16).padStart(2, '0')).join(''));
+  const roundKeys = cachedKeyExpansion(keyBytes);
+
+  // Initial round key addition with round 10
+  state = addRoundKey(state, roundKeys[10]);
+
+  // Rounds 9 down to 1: InvShiftRows, InvSubBytes, AddRoundKey, InvMixColumns
+  for (let round = 9; round >= 1; round--) {
+    state = invShiftRows(state);
+    state = invSubBytes(state);
+    state = addRoundKey(state, roundKeys[round]);
+    state = invMixColumns(state);
+  }
+
+  // Final round: InvShiftRows, InvSubBytes, AddRoundKey with round 0
+  state = invShiftRows(state);
+  state = invSubBytes(state);
+  state = addRoundKey(state, roundKeys[0]);
+
+  const result: number[] = [];
+  for (let c = 0; c < 4; c++) {
+    for (let r = 0; r < 4; r++) {
+      result.push(state[c][r]);
+    }
+  }
+  return result;
+}
+
+// AES-CBC Decryption
+export function aesCBCDecrypt(blocks: number[][], key: number[], iv: number[]): number[] {
+  const plaintext: number[] = [];
+  let prev = iv;
+  for (const block of blocks) {
+    const decrypted = aesECBDecrypt(block, key);
+    const ptBlock = decrypted.map((b, i) => b ^ prev[i]);
+    plaintext.push(...ptBlock);
+    prev = block;
+  }
+  return plaintext;
+}
+
 // ============= AES-CTR Mode =============
 
 function incrementCounter(counter: number[]): number[] {
