@@ -24,6 +24,12 @@ import { ShamirSSS } from '@/components/pages/ShamirSSS';
 import { PaddingOracleAttack } from '@/components/pages/PaddingOracleAttack';
 import { TextbookRSAAttack } from '@/components/pages/TextbookRSAAttack';
 import { HashExtensionAttack } from '@/components/pages/HashExtensionAttack';
+import { GCMNonceReuse } from '@/components/pages/GCMNonceReuse';
+import { HMACWalkthrough } from '@/components/pages/HMACWalkthrough';
+import { ECBPenguin } from '@/components/pages/ECBPenguin';
+import { DHSubgroupAttack } from '@/components/pages/DHSubgroupAttack';
+import { WienerAttack } from '@/components/pages/WienerAttack';
+import { CurvePlot } from '@/components/pages/CurvePlot';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SecurityBanner } from '@/components/SecurityBanner';
 
@@ -50,7 +56,13 @@ export type Page =
   | 'padding-oracle'
   | 'textbook-rsa'
   | 'hash-extension'
-  | 'shamir';
+  | 'shamir'
+  | 'gcm-nonce'
+  | 'hmac'
+  | 'ecb-penguin'
+  | 'dh-subgroup'
+  | 'wiener'
+  | 'curve-plot';
 
 const PAGE_COMPONENTS: Record<Page, React.FC> = {
   'ec-calculator': ECCalculator,
@@ -76,6 +88,12 @@ const PAGE_COMPONENTS: Record<Page, React.FC> = {
   'textbook-rsa': TextbookRSAAttack,
   'hash-extension': HashExtensionAttack,
   shamir: ShamirSSS,
+  'gcm-nonce': GCMNonceReuse,
+  hmac: HMACWalkthrough,
+  'ecb-penguin': ECBPenguin,
+  'dh-subgroup': DHSubgroupAttack,
+  wiener: WienerAttack,
+  'curve-plot': CurvePlot,
 };
 
 const PAGE_TITLES: Record<Page, string> = {
@@ -102,6 +120,12 @@ const PAGE_TITLES: Record<Page, string> = {
   'textbook-rsa': 'Textbook RSA Attack',
   'hash-extension': 'Hash Length Extension Attack',
   shamir: 'Shamir Secret Sharing',
+  'gcm-nonce': 'GCM Nonce Reuse Attack',
+  hmac: 'HMAC-SHA256 Walkthrough',
+  'ecb-penguin': 'ECB Pattern Leakage',
+  'dh-subgroup': 'DH Small Subgroup Attack',
+  wiener: "Wiener's RSA Attack",
+  'curve-plot': 'EC Curve Visualization',
 };
 
 function useIsMobile() {

@@ -246,6 +246,66 @@ const NAV_ITEMS: NavItem[] = [
       </svg>
     ),
   },
+  {
+    id: 'gcm-nonce',
+    label: 'GCM Nonce Reuse',
+    category: 'Attacks',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <path d="M12 9v4M12 17h.01M5.07 19H19a2 2 0 001.75-2.75L13.75 4a2 2 0 00-3.5 0L3.32 16.25A2 2 0 005.07 19z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'dh-subgroup',
+    label: 'DH Subgroup Attack',
+    category: 'Attacks',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <circle cx="12" cy="12" r="10" /><path d="M8 12h8M12 8v8" />
+      </svg>
+    ),
+  },
+  {
+    id: 'wiener',
+    label: "Wiener's Attack",
+    category: 'Attacks',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+      </svg>
+    ),
+  },
+  {
+    id: 'hmac',
+    label: 'HMAC Walkthrough',
+    category: 'Composition',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" />
+      </svg>
+    ),
+  },
+  {
+    id: 'ecb-penguin',
+    label: 'ECB Penguin',
+    category: 'Attacks',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
+      </svg>
+    ),
+  },
+  {
+    id: 'curve-plot',
+    label: 'EC Curve Plot',
+    category: 'Utilities',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <circle cx="7.5" cy="7.5" r="1.5" /><circle cx="16.5" cy="7.5" r="1.5" /><circle cx="12" cy="16" r="1.5" /><circle cx="4" cy="14" r="1.5" /><circle cx="20" cy="14" r="1.5" />
+      </svg>
+    ),
+  },
 ];
 
 interface SidebarProps {
