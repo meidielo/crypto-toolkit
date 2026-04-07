@@ -30,6 +30,11 @@ import { ECBPenguin } from '@/components/pages/ECBPenguin';
 import { DHSubgroupAttack } from '@/components/pages/DHSubgroupAttack';
 import { WienerAttack } from '@/components/pages/WienerAttack';
 import { CurvePlot } from '@/components/pages/CurvePlot';
+import { BleichenbacherAttack } from '@/components/pages/BleichenbacherAttack';
+import { CoppersmithAttack } from '@/components/pages/CoppersmithAttack';
+import { CRTFaultAttack } from '@/components/pages/CRTFaultAttack';
+import { BirthdayCollision } from '@/components/pages/BirthdayCollision';
+import { ConstantTimeDemo } from '@/components/pages/ConstantTimeDemo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SecurityBanner } from '@/components/SecurityBanner';
 
@@ -62,7 +67,12 @@ export type Page =
   | 'ecb-penguin'
   | 'dh-subgroup'
   | 'wiener'
-  | 'curve-plot';
+  | 'curve-plot'
+  | 'bleichenbacher'
+  | 'coppersmith'
+  | 'crt-fault'
+  | 'birthday'
+  | 'constant-time';
 
 const PAGE_COMPONENTS: Record<Page, React.FC> = {
   'ec-calculator': ECCalculator,
@@ -94,6 +104,11 @@ const PAGE_COMPONENTS: Record<Page, React.FC> = {
   'dh-subgroup': DHSubgroupAttack,
   wiener: WienerAttack,
   'curve-plot': CurvePlot,
+  bleichenbacher: BleichenbacherAttack,
+  coppersmith: CoppersmithAttack,
+  'crt-fault': CRTFaultAttack,
+  birthday: BirthdayCollision,
+  'constant-time': ConstantTimeDemo,
 };
 
 const PAGE_TITLES: Record<Page, string> = {
@@ -126,6 +141,11 @@ const PAGE_TITLES: Record<Page, string> = {
   'dh-subgroup': 'DH Small Subgroup Attack',
   wiener: "Wiener's RSA Attack",
   'curve-plot': 'EC Curve Visualization',
+  bleichenbacher: 'Bleichenbacher RSA Attack',
+  coppersmith: 'Hastad Broadcast Attack (e=3)',
+  'crt-fault': 'CRT-RSA Fault Injection',
+  birthday: 'Birthday Collision Finder',
+  'constant-time': 'Constant-Time Comparison',
 };
 
 function useIsMobile() {
