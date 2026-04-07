@@ -24,7 +24,7 @@ import { isPrime } from '@/lib/crypto-math';
 function parseBigInt(s: string): bigint | null {
   try {
     const trimmed = s.trim();
-    if (!trimmed) return null;
+    if (!trimmed || trimmed.length > 2000) return null;
     if (trimmed.startsWith('-')) return -BigInt(trimmed.slice(1));
     return BigInt(trimmed);
   } catch {

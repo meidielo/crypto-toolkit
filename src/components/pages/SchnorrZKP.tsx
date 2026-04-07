@@ -9,7 +9,7 @@ import { mod, modPow } from '@/lib/ec-math';
 import { isPrime } from '@/lib/crypto-math';
 
 function parseBigInt(s: string): bigint | null {
-  try { const t = s.trim(); if (!t) return null; return BigInt(t); } catch { return null; }
+  try { const t = s.trim(); if (!t || t.length > 2000) return null; return BigInt(t); } catch { return null; }
 }
 
 type Phase = 'setup' | 'commit' | 'challenge' | 'respond' | 'verify';

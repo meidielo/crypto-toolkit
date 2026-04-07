@@ -8,7 +8,7 @@ import { StepCard, ComputationRow, FormulaBox } from '@/components/StepCard';
 import { mod, modPow, modInverse, gcd } from '@/lib/crypto-math';
 
 function parseBigInt(s: string): bigint | null {
-  try { const t = s.trim(); if (!t) return null; return BigInt(t); } catch { return null; }
+  try { const t = s.trim(); if (!t || t.length > 2000) return null; return BigInt(t); } catch { return null; }
 }
 
 function isqrt(n: bigint): bigint {

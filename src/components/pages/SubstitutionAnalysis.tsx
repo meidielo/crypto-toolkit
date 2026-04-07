@@ -46,16 +46,16 @@ export function SubstitutionAnalysis() {
   const digraphs = useMemo(() => sortedNgrams(countNgrams(debouncedCiphertext, 2)).slice(0, 15), [debouncedCiphertext]);
   const trigraphs = useMemo(() => sortedNgrams(countNgrams(debouncedCiphertext, 3)).slice(0, 15), [debouncedCiphertext]);
 
-  // Decoded text
+  // Decoded text — uses debounced ciphertext for performance, instant mapping updates
   const decoded = useMemo(() => {
-    return ciphertext.split('').map(c => {
+    return debouncedCiphertext.split('').map(c => {
       const upper = c.toUpperCase();
       if (upper >= 'A' && upper <= 'Z' && mapping[upper]) {
         return c === upper ? mapping[upper].toUpperCase() : mapping[upper].toLowerCase();
       }
       return c;
     }).join('');
-  }, [ciphertext, mapping]);
+  }, [debouncedCiphertext, mapping]);
 
   function setMap(cipher: string, plain: string) {
     setMapping(prev => {
@@ -256,7 +256,7 @@ export function SubstitutionAnalysis() {
                 <CardContent>
                   <div className="font-mono text-sm whitespace-pre-wrap bg-muted/50 rounded-lg p-4 max-h-64 overflow-auto">
                     {decoded.split('').map((c, i) => {
-                      const orig = ciphertext[i];
+                      const orig = debouncedCiphertext[i];
                       const isDecoded = orig && orig.toUpperCase() >= 'A' && orig.toUpperCase() <= 'Z' && mapping[orig.toUpperCase()];
                       return (
                         <span key={i} className={isDecoded ? 'text-green-600 dark:text-green-400 font-bold' : ''}>

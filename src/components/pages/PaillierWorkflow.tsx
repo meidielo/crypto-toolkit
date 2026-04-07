@@ -7,7 +7,7 @@ import { StepCard, ComputationRow, FormulaBox } from '@/components/StepCard';
 import { mod, modPow, modInverse, lcm, gcd, isPrime, paillierL } from '@/lib/crypto-math';
 
 function parseBigInt(s: string): bigint | null {
-  try { const t = s.trim(); if (!t) return null; return BigInt(t); } catch { return null; }
+  try { const t = s.trim(); if (!t || t.length > 2000) return null; return BigInt(t); } catch { return null; }
 }
 
 type Phase = 'keygen' | 'encrypt' | 'homomorphic' | 'decrypt';
@@ -128,6 +128,7 @@ export function PaillierWorkflow() {
           <div><Label className="text-xs">q (prime)</Label><Input value={qStr} onChange={e => setQStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">g (generator)</Label><Input value={gStr} onChange={e => setGStr(e.target.value)} className="font-mono" /></div>
         </div>
+        <p className="text-xs text-muted-foreground">Tip: g = n+1 always works and simplifies L(g^λ mod n²) = λ. Custom g must satisfy gcd(L(g^λ mod n²), n) = 1.</p>
         <Button onClick={doKeygen} className="w-full">Generate Keys</Button>
         {keyError && <p className="text-sm text-destructive">{keyError}</p>}
         {keyResult && (

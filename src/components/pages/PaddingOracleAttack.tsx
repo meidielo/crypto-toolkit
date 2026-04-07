@@ -194,6 +194,12 @@ export function PaddingOracleAttack() {
                 <strong>Fix:</strong> Use authenticated encryption (AES-GCM). The authentication tag
                 detects ANY ciphertext modification, eliminating the oracle entirely.
               </p>
+              <p className="text-xs text-red-600/80 dark:text-red-400/70">
+                <strong>Timing note:</strong> In this demo the oracle returns instantly. In real attacks,
+                the timing difference between "invalid padding" and "valid padding but wrong MAC" is
+                microseconds — enough for a network attacker to distinguish. Some oracles leak via
+                distinct error messages, HTTP status codes, or connection resets rather than timing.
+              </p>
             </div>
           </div>
         )}

@@ -219,13 +219,13 @@ function cachedKeyExpansion(keyBytes: number[]): State[] {
     keyExpansionCache.set(keyHex, cached);
     return cached;
   }
-  const computed = keyExpansion(keyBytes);
-  keyExpansionCache.set(keyHex, computed);
-  // Evict oldest entry if cache exceeds 16
-  if (keyExpansionCache.size > 16) {
+  // Evict oldest entry before inserting to maintain max 16
+  if (keyExpansionCache.size >= 16) {
     const oldestKey = keyExpansionCache.keys().next().value;
     if (oldestKey !== undefined) keyExpansionCache.delete(oldestKey);
   }
+  const computed = keyExpansion(keyBytes);
+  keyExpansionCache.set(keyHex, computed);
   return computed;
 }
 
