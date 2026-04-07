@@ -161,6 +161,9 @@ export class SHA256 {
 
   /** Parse a hex digest into 8 state words (for resuming) */
   static parseState(hex: string): number[] {
+    if (!/^[0-9a-fA-F]{64}$/.test(hex)) {
+      throw new Error('parseState requires exactly 64 hex characters');
+    }
     const state: number[] = [];
     for (let i = 0; i < 64; i += 8) {
       state.push(parseInt(hex.substring(i, i + 8), 16));

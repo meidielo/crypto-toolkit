@@ -17,6 +17,7 @@ export function HashExtensionAttack() {
   const [extension, setExtension] = useState('&amount=999');
   const [error, setError] = useState('');
 
+  const [secretLenGuess, setSecretLenGuess] = useState('11'); // attacker guesses secret length
   const [originalHash, setOriginalHash] = useState('');
   const [internalState, setInternalState] = useState<number[]>([]);
   const [extendedHash, setExtendedHash] = useState('');
@@ -40,15 +41,17 @@ export function HashExtensionAttack() {
     // 3. Resume SHA-256 from that state with the extension
     // 4. The result matches SHA-256(secret || message || padding || extension)
 
-    const originalInput = secret + message;
-    const padding = mdPaddingBytes(originalInput.length);
+    // Attacker guesses secret length (doesn't know it!)
+    const guessedSecretLen = parseInt(secretLenGuess) || 0;
+    const guessedInputLen = guessedSecretLen + message.length;
+    const padding = mdPaddingBytes(guessedInputLen);
     setPaddingHex(Array.from(padding).map(b => b.toString(16).padStart(2, '0')).join(' '));
 
     // Step 1: Parse the state from the original hash
     const state = SHA256.parseState(originalHash);
 
-    // Step 2: Compute total length after secret||message||padding (all processed blocks)
-    const processedLen = originalInput.length + padding.length;
+    // Step 2: Compute total length based on GUESSED secret length
+    const processedLen = guessedInputLen + padding.length;
 
     // Step 3: Create a NEW SHA-256 initialized from the captured state
     // This is the core of the attack — we resume hashing WITHOUT knowing the secret
@@ -57,7 +60,8 @@ export function HashExtensionAttack() {
     const forgedHash = extender.digest();
     setExtendedHash(forgedHash);
 
-    // Step 4: Verify — server computes SHA-256(secret || message || padding || extension)
+    // Step 4: Server verifies — computes SHA-256(secret || message || guessed_padding || extension)
+    // This only matches when the guessed secret length is CORRECT
     const encoder = new TextEncoder();
     const fullInput = new Uint8Array([
       ...encoder.encode(secret + message),
@@ -126,11 +130,20 @@ export function HashExtensionAttack() {
             </div>
           </FormulaBox>
         )}
-        <div>
-          <Label className="text-xs">Extension to append</Label>
-          <Input value={extension} onChange={e => setExtension(e.target.value)} className="font-mono" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <Label className="text-xs">Extension to append</Label>
+            <Input value={extension} onChange={e => setExtension(e.target.value)} className="font-mono" />
+          </div>
+          <div>
+            <Label className="text-xs">Guess secret length (attacker doesn't know this!)</Label>
+            <Input value={secretLenGuess} onChange={e => setSecretLenGuess(e.target.value)} className="font-mono" />
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Real attacker tries lengths 1..N. Correct = {secret.length}. Wrong guess = forged MAC won't match.
+            </p>
+          </div>
         </div>
-        <Button onClick={doExtend} className="w-full">Forge Extended MAC (without knowing secret)</Button>
+        <Button onClick={doExtend} className="w-full">Forge Extended MAC (guessing secret length = {secretLenGuess})</Button>
       </StepCard>
 
       <StepCard step={3} title="Attack: Resume SHA-256 from Captured State" status={getStatus('extend')}>

@@ -237,6 +237,7 @@ export function babyGiantStep(
 }
 
 export function getPointOrder(P: ECPoint, A: bigint, _B: bigint, p: bigint): bigint {
+  if (p > 10000n) throw new Error('getPointOrder: p too large (max 10000). Use Schoof or BSGS for larger curves.');
   if (isInfinity(P)) return 1n;
   let Q = { ...P };
   let order = 1n;

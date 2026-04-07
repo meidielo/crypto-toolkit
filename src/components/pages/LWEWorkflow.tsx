@@ -173,6 +173,10 @@ export function LWEWorkflow() {
                 The small error terms (from encryption randomness + key generation error) accumulate
                 but stay small enough that decryption succeeds. If errors were too large, they could
                 flip the bit — this is why parameter selection (n, q, error bound) is critical.
+                For n={nStr}, q={qStr}, error ∈ {'{-1,0,1}'}, max accumulated noise ≈ n = {nStr}.
+                Decryption succeeds when noise &lt; q/4 = {Math.floor(q / 4)}.
+                Failure probability increases with n/q ratio — ML-KEM uses q=3329, n=256 with
+                carefully tuned noise distribution to achieve 2^(-138) decryption failure rate.
               </p>
             </div>
           </FormulaBox>

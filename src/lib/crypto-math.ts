@@ -26,6 +26,10 @@ export function isPrime(n: bigint): boolean {
   return millerRabin(n, 20);
 }
 
+// Deterministic for n < 3.3×10²⁴ (~81 bits) with fixed witnesses.
+// Above that, uses first `rounds` witnesses — probabilistic with error < 4^(-rounds).
+// For RSA key generation > 81 bits, this is sufficient for educational use
+// but production code should use random witnesses from crypto.getRandomValues.
 function millerRabin(n: bigint, rounds: number): boolean {
   let d = n - 1n;
   let r = 0n;

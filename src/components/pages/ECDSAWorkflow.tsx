@@ -140,6 +140,9 @@ export function ECDSAWorkflow() {
     const q = parseBigInt(qStr)!;
     const G: ECPoint = { x: gx, y: gy };
     const { r, s } = signResult;
+    // ECDSA verification MUST reject out-of-range signatures (CVE-2020-0601 related)
+    if (r <= 0n || r >= q) { setVerifyError(`r = ${r} is out of range [1, q-1]. Real ECDSA verification rejects this.`); return; }
+    if (s <= 0n || s >= q) { setVerifyError(`s = ${s} is out of range [1, q-1]. Real ECDSA verification rejects this.`); return; }
     try {
       const w = modInverse(s, q);
       const u1 = mod(hashInt * w, q);
