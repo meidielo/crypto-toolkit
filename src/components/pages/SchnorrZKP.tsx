@@ -37,6 +37,8 @@ export function SchnorrZKP() {
     const p = parseBigInt(pStr), g = parseBigInt(gStr), x = parseBigInt(xStr);
     if (!p || !g || !x) { setSetupError('Enter all parameters'); return; }
     if (!isPrime(p)) { setSetupError('p must be prime'); return; }
+    // Validate g generates a prime-order subgroup: g^(p-1) ≡ 1 mod p (Fermat)
+    if (modPow(g, p - 1n, p) !== 1n) { setSetupError('g^(p-1) mod p ≠ 1 — g is not a valid generator'); return; }
     setYVal(modPow(g, x, p));
     setPhase('commit');
   }
@@ -243,6 +245,11 @@ export function SchnorrZKP() {
             )}
           </StepCard>
         </div>
+      </div>
+
+      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-3 text-xs text-blue-600 dark:text-blue-400 space-y-1">
+        <p className="font-semibold">In Practice: EC-Schnorr and EdDSA</p>
+        <p>Modern Schnorr signatures use elliptic curves instead of discrete log over Z_p*. EdDSA (Ed25519, Ed448) is Schnorr instantiated over twisted Edwards curves — the same commit-challenge-response structure, but with EC scalar multiplication instead of modular exponentiation. The cofactor is handled by the curve design, eliminating subgroup attacks.</p>
       </div>
     </div>
   );

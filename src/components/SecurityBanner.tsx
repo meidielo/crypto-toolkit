@@ -4,12 +4,12 @@ const STORAGE_KEY = 'crypto-toolkit-banner-dismissed';
 
 export function SecurityBanner() {
   const [dismissed, setDismissed] = useState(() => {
-    try { return localStorage.getItem(STORAGE_KEY) === 'true'; }
+    try { return sessionStorage.getItem(STORAGE_KEY) === 'true'; }
     catch { return false; }
   });
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, String(dismissed)); }
+    try { sessionStorage.setItem(STORAGE_KEY, String(dismissed)); }
     catch { /* ignore */ }
   }, [dismissed]);
 

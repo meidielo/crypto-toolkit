@@ -212,17 +212,21 @@ export function aesRound(state: State, roundKey: State): AESRoundResult {
 const keyExpansionCache = new Map<string, State[]>();
 function cachedKeyExpansion(keyBytes: number[]): State[] {
   const keyHex = keyBytes.map(b => b.toString(16).padStart(2, '0')).join('');
-  let cached = keyExpansionCache.get(keyHex);
-  if (!cached) {
-    cached = keyExpansion(keyBytes);
+  const cached = keyExpansionCache.get(keyHex);
+  if (cached) {
+    // LRU: move to end of Map iteration order
+    keyExpansionCache.delete(keyHex);
     keyExpansionCache.set(keyHex, cached);
-    // Limit cache size to prevent memory leak
-    if (keyExpansionCache.size > 16) {
-      const firstKey = keyExpansionCache.keys().next().value;
-      if (firstKey !== undefined) keyExpansionCache.delete(firstKey);
-    }
+    return cached;
   }
-  return cached;
+  const computed = keyExpansion(keyBytes);
+  keyExpansionCache.set(keyHex, computed);
+  // Evict oldest entry if cache exceeds 16
+  if (keyExpansionCache.size > 16) {
+    const oldestKey = keyExpansionCache.keys().next().value;
+    if (oldestKey !== undefined) keyExpansionCache.delete(oldestKey);
+  }
+  return computed;
 }
 
 export function aesECB(block: number[], keyBytes: number[]): number[] {

@@ -84,6 +84,11 @@ export function ECDSAWorkflow() {
     if (!isPrime(q)) { setSetupError('q (curve order) must be prime for ECDSA'); return; }
     const G: ECPoint = { x: gx, y: gy };
     if (!isOnCurve(G, A, B, p)) { setSetupError('G is not on the curve'); return; }
+    // Verify G has order q (skip for large standard curves — too slow)
+    if (q <= (1n << 64n)) {
+      const qG = scalarMultiply(q, G, A, p);
+      if (!isInfinity(qG)) { setSetupError('q is not the order of G: q*G is not infinity'); return; }
+    }
     try {
       const Q = scalarMultiply(d, G, A, p);
       setPubKey(Q);

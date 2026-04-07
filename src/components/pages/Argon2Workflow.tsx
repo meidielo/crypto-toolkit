@@ -41,7 +41,9 @@ export function Argon2Workflow() {
         setWorkerReady(true);
         return;
       }
-      const { result, error: err } = e.data;
+      const { id, result, error: err } = e.data;
+      // Drop stale responses from superseded requests
+      if (id !== undefined && id !== idRef.current) return;
       setComputing(false);
       if (err) {
         setError(err);

@@ -53,6 +53,7 @@ export function PaillierWorkflow() {
       const lambda = lcm(p - 1n, q - 1n);
       const u = modPow(g, lambda, nSq);
       const lU = paillierL(u, n);
+      if (gcd(lU, n) !== 1n) { setKeyError(`L(u) = ${lU} is not coprime to n = ${n}. Choose a different generator g.`); return; }
       const mu = modInverse(lU, n);
       setKeyResult({ n, nSq, lambda, u, lU, mu });
       setPhase('encrypt');
