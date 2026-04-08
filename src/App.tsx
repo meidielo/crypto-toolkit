@@ -188,28 +188,29 @@ export default function App() {
         />
         <main className="flex-1 overflow-auto min-w-0">
           <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-background/80 backdrop-blur-sm px-4 md:px-6 py-3 gap-2">
-            <button
-              onClick={() => setPage('home')}
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0"
-            >
-              <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
-                <span className="text-primary-foreground font-bold text-xs">CT</span>
-              </div>
-              <span className="text-base md:text-lg font-semibold tracking-tight truncate">
-                {page === 'home' ? 'CryptoToolkit' : PAGE_TITLES[page]}
-              </span>
-            </button>
-            <div className="flex items-center gap-1">
-              <ThemeToggle />
+            <div className="flex items-center gap-2 min-w-0">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="p-1.5 rounded-md hover:bg-muted text-muted-foreground shrink-0"
+                aria-label="Toggle sidebar"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M3 12h18M3 6h18M3 18h18" />
                 </svg>
               </button>
+              <button
+                onClick={() => setPage('home')}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0"
+              >
+                <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center shrink-0">
+                  <span className="text-primary-foreground font-bold text-[10px]">CT</span>
+                </div>
+                <span className="text-sm md:text-base font-semibold tracking-tight truncate">
+                  {page === 'home' ? 'CryptoToolkit' : PAGE_TITLES[page]}
+                </span>
+              </button>
             </div>
+            <ThemeToggle />
           </header>
           <div className="p-4 md:p-6 max-w-6xl mx-auto">
             <SecurityBanner />
