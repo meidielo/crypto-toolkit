@@ -1,74 +1,77 @@
 # CryptoToolkit
 
-A unified, client-side educational cryptography platform built with React, TypeScript, and Tailwind CSS. Covers symmetric (AES), asymmetric (ECC/RSA), hashing (SHA), post-quantum (LWE), and implementation vulnerabilities. All computation runs in-browser using BigInt arithmetic with `crypto.getRandomValues()` (CSPRNG) -- no server required, no timeouts.
+An interactive educational cryptography platform with 35 modules covering symmetric encryption, asymmetric cryptography, post-quantum lattice encryption, protocol composition, and implementation attacks. All computation runs client-side using BigInt arithmetic with `crypto.getRandomValues()` (CSPRNG) — no server required.
 
-Inspired by [christelbach.com](http://www.christelbach.com/ECCalculator.aspx) but designed as a complete learning platform for postgraduate cybersecurity curricula.
+**Live:** [ctool.mdpstudio.com.au](https://ctool.mdpstudio.com.au)
 
-## Security Notice
+## Modules (35 pages)
 
-This toolkit uses JavaScript BigInt arithmetic which is **not constant-time**. Real cryptographic implementations require constant-time operations to prevent side-channel timing attacks. Web Crypto API comparison buttons are provided on ECDSA, AES, and RSA pages so students can verify results against the browser's native `crypto.subtle` (constant-time C/C++). Never use this code for production cryptography.
+### Cryptography
+- **Elliptic Curve Calculator** — Point addition, scalar multiply, points table, preset curves (secp256k1, P-192, P-256). Parameter contradiction validation.
+- **RSA Key Generator** — 16-2048 bit key generation, manual key computation, encrypt/decrypt. Web Crypto comparison.
+- **Cipher Tools** — Caesar (encrypt/decrypt/brute force), Vigenere, ROT13, Atbash, frequency analysis.
 
-## Modules
+### Number Theory
+- **Modular Arithmetic** — Mod inverse, mod exponentiation, GCD/extended GCD, Euler's totient, sqrt mod p (Tonelli-Shanks), Legendre symbol, Miller-Rabin primality.
+- **Integer Factorization** — Prime factorization, totient, divisor count, next prime, prime listing up to 100,000.
 
-### Cryptography (Calculators)
-- **Elliptic Curve Calculator** -- Point addition (P+Q) and scalar multiplication (kP) on curves y² = x³ + Ax + B over F_p. Step-by-step calculation display, points table with order/generator detection, preset curves (secp256k1, P-192, P-256). **Parameter contradiction validation** -- warns if manually-edited params match a different standard curve than selected.
-- **RSA Key Generator** -- Random key pair generation (16-2048 bit), manual key computation from primes p and q, encrypt/decrypt with modular exponentiation. Web Crypto comparison button.
-- **Cipher Tools** -- Caesar cipher (encrypt/decrypt/brute force all 26 shifts), Vigenere cipher, ROT13, Atbash, and letter frequency analysis.
-
-### Number Theory (Calculators)
-- **Modular Arithmetic** -- Modular inverse (extended Euclidean), modular exponentiation, GCD/extended GCD with Bezout coefficients, Euler's totient, square root mod p (Tonelli-Shanks), Legendre symbol, Miller-Rabin primality test.
-- **Integer Factorization** -- Trial division factorization, Euler's totient, divisor count, next prime finder, prime number listing up to 100,000.
-
-### Utilities
-- **Base & Text Converter** -- SHA-1/SHA-256 hashing with LF/CRLF toggle and decimal BigInt output, text to hex/binary/decimal/base64 encoding, number base conversion (bases 2-16).
-
-### Guided Workflows (Step-by-Step)
-- **ECDSA Signing** -- Full ECDSA digital signature workflow: setup curve and keys, hash message (SHA-256), generate signature (r, s) with nonce, verify signature. Inline warning about nonce uniqueness. Web Crypto comparison button.
-- **Paillier Cryptosystem** -- Additive homomorphic encryption: key generation (n, lambda, mu), encrypt, homomorphic addition (multiply ciphertexts to add plaintexts), decrypt. Prefilled with educational values (p=107, q=61).
-- **ElGamal Cryptosystem** -- Exponential ElGamal with homomorphic properties: setup, encrypt, multiply ciphertexts to add messages, decrypt via bounded discrete log.
-- **RSA Attack** -- Given (n, e, C), factor n by trial division, recover private key d, decrypt plaintext M, verify.
-- **Substitution Cipher Analysis** -- Interactive monoalphabetic cipher breaker with frequency analysis bar charts, digraph/trigraph counters, interactive substitution table, and live decoded text preview with English reference frequencies.
-- **Diffie-Hellman Key Exchange** -- Step-by-step key exchange: public parameters, Alice computes A, Bob computes B, both derive shared secret.
-- **AES-128 Round Visualization** -- Single-round AES breakdown showing SubBytes (S-Box lookup), ShiftRows, MixColumns (GF(2^8) polynomial matrix multiplication with per-column detail), and AddRoundKey. 4x4 state matrix visualization with changed-byte highlighting. FIPS 197 test vectors as defaults. Web Crypto comparison button.
-- **ECDSA Nonce Reuse Attack** -- Demonstrates how reusing nonce k across two signatures leaks the private key d. Algebraic extraction of k and d with step-by-step derivation. Explains the PS3 ECDSA compromise (2010) and includes RFC 6979 HMAC-DRBG construction as the fix.
-
-### Implementation Attacks
-- **Padding Oracle Attack** -- Vaudenay attack on AES-CBC: demonstrates how PKCS#7 padding responses leak plaintext byte-by-byte without knowing the key. Explains why authenticated encryption (AES-GCM) eliminates this attack class.
-- **Textbook RSA Malleability** -- Shows RSA's multiplicative homomorphism: attacker modifies ciphertext to encrypt a related message (c * 2^e → decrypts to 2m). Explains why RSA-OAEP padding is mandatory.
-- **Hash Length Extension Attack** -- Demonstrates Merkle-Damgard vulnerability: SHA-256(secret || message) can be extended to SHA-256(secret || message || padding || extension) without knowing the secret. Shows why HMAC prevents this.
-
-### Advanced
-- **Lattice (LWE) Encryption** -- Post-quantum Learning With Errors: key generation, encrypt a single bit, decrypt with error analysis. Explains why LWE is the basis for NIST ML-KEM (CRYSTALS-Kyber) and resists quantum attacks.
-- **Schnorr ZKP Protocol** -- Interactive zero-knowledge proof with Prover/Verifier two-panel layout. Includes cheating prover mode demonstrating soundness: a prover who doesn't know x cannot fake the proof.
+### Workflows
+- **ECDSA Signing** — Hash → sign → verify with nonce uniqueness warnings and RFC 6979 explanation.
+- **Paillier** — Additive homomorphic encryption: keygen, encrypt, homomorphic addition, decrypt.
+- **ElGamal** — Exponential ElGamal with homomorphic multiply and bounded discrete log.
+- **Diffie-Hellman** — Step-by-step key exchange with shared secret derivation.
+- **AES-128 Round** — SubBytes, ShiftRows (CSS animated), MixColumns (GF(2^8) detail), AddRoundKey. FIPS 197 vectors.
+- **Shamir Secret Sharing** — Polynomial split, Lagrange interpolation, threshold demo.
 
 ### Protocol Composition
-- **AES-GCM Authenticated Encryption** -- Full Galois/Counter Mode: AES-CTR stream cipher + GHASH polynomial authentication over GF(2^128). Shows counter blocks, per-block GHASH accumulator, and final authentication tag. Web Crypto comparison.
-- **Argon2id Key Derivation** -- Memory-hard password hashing via WASM (hash-wasm). Side-by-side SHA-256 timing comparison proving GPU resistance. Memory lane architecture visualization. OWASP-recommended presets.
-- **TLS 1.3 Handshake** -- Capstone module chaining ECDHE key exchange → HKDF key derivation → server authentication → AES-GCM encrypted application data. Full protocol state machine showing how primitives compose into HTTPS.
+- **AES-GCM** — CTR stream cipher + GHASH polynomial authentication over GF(2^128). Web Crypto comparison.
+- **Argon2id** — Memory-hard password hashing via WASM Web Worker. SHA-256 timing comparison, OWASP presets.
+- **TLS 1.3 Handshake** — ECDHE → HKDF → ECDSA (real crypto.subtle) → AES-GCM encrypted application data.
+- **HMAC-SHA256** — Step-by-step ipad/opad XOR, inner/outer hash with Web Crypto verification.
+
+### Attacks (12 pages)
+- **ECDSA Nonce Reuse** — Extract private key from two signatures with same k. PS3 incident context.
+- **GCM Nonce Reuse** — XOR ciphertexts to leak plaintext relationship + authentication key H.
+- **Padding Oracle** — Real AES-CBC inverse cipher decryption, byte-by-byte PKCS#7 recovery.
+- **Textbook RSA** — Ciphertext malleability via multiplicative homomorphism.
+- **Hash Length Extension** — Custom SHA-256 with exposed internal state. Real Merkle-Damgard exploit (not simulation).
+- **RSA Factoring** — Trial division from sqrt(n), recover d, decrypt, verify.
+- **Wiener's Attack** — Continued fraction expansion of e/n recovers small private key d.
+- **Bleichenbacher** — PKCS#1 v1.5 padding oracle with interval narrowing.
+- **Hastad Broadcast** — CRT + integer cube root for e=3.
+- **CRT-RSA Fault Injection** — Single bit flip during CRT signing reveals p via GCD.
+- **DH Small Subgroup** — Malicious generators leak secret mod small order, CRT combination.
+- **ECB Penguin** — Color-coded block visualization showing pattern leakage.
+
+### Advanced
+- **Lattice (LWE)** — Post-quantum encryption with error analysis and brute-force scaling table.
+- **Schnorr ZKP** — Interactive zero-knowledge proof with cheating prover mode (soundness demo).
+- **Birthday Collision** — Truncated SHA-256 collision finder with sqrt(N) scaling.
+- **Constant-Time Comparison** — Early-exit vs XOR-based string comparison with timing measurements.
+
+### Utilities
+- **Base & Encoding** — SHA-1/SHA-256 hashing (LF/CRLF aware), text↔hex/binary/decimal/base64, base conversion.
+- **Substitution Analysis** — Interactive cipher breaker with frequency/digraph/trigraph analysis.
+- **EC Curve Plot** — Scatter plot of all F_p points for small primes with interactive selection.
 
 ## Tech Stack
 
-- **React 19** + **Vite 8** -- Fast dev/build
-- **TypeScript** -- Type safety for math operations
-- **Tailwind CSS v4** + **shadcn/ui** -- Modern, polished UI with dark/light theme
-- **BigInt** -- Arbitrary precision arithmetic, no external math libraries
-- **Web Crypto API** -- `crypto.getRandomValues()` for CSPRNG, `crypto.subtle` for constant-time comparison
-- **hash-wasm** -- Argon2id compiled to WebAssembly for in-browser memory-hard hashing
+- **React 19** + **Vite 8** — Code-split with React.lazy (main bundle 217KB → 65KB gzipped)
+- **TypeScript 5.9** — Strict mode with noUnusedLocals
+- **Tailwind CSS v4** + **shadcn/ui** — Dark/light theme, responsive 320px-1280px+
+- **Vitest** — 20 tests covering AES (FIPS 197), SHA-256 (FIPS 180-4), EC math, number theory
+- **BigInt** — Arbitrary precision, no external math libraries
+- **Web Crypto API** — CSPRNG, constant-time ECDSA/AES/RSA comparison
+- **hash-wasm** — Argon2id WASM in dedicated Web Worker
+- **ESLint** — `Math.random` banned via `no-restricted-properties`
 
 ## Getting Started
 
 ```bash
-# Install dependencies
 npm install
-
-# Start dev server
-npm run dev
-
-# Production build
-npm run build
-
-# Preview production build
-npm run preview
+npm run dev      # dev server at localhost:5173
+npm run build    # production build
+npm test         # 20 tests
 ```
 
 ## Architecture
@@ -76,70 +79,40 @@ npm run preview
 ```
 src/
   lib/
-    ec-math.ts        # EC math (point add, scalar multiply, Tonelli-Shanks, curve identification)
-    crypto-math.ts    # RSA, primality, factorization, ciphers, encoding, Paillier, DLog
-    aes-math.ts       # AES S-Box, SubBytes, ShiftRows, MixColumns (GF(2^8)), AddRoundKey, KeyExpansion
-    lwe-math.ts       # LWE matrix ops, key generation, encrypt, decrypt
-    web-crypto.ts     # Web Crypto API wrappers (HMAC, HKDF, AES-GCM, ECDH)
-    utils.ts          # UI utility (cn)
+    ec-math.ts         # EC operations, Montgomery ladder, baby-step giant-step ECDLP
+    crypto-math.ts     # RSA, primality, factorization, ciphers, Paillier, discrete log
+    aes-math.ts        # AES encrypt/decrypt (FIPS 197), CTR, GCM, GHASH, GF(2^8/2^128)
+    sha256.ts          # Custom SHA-256 with exposed internal state (for hash extension)
+    lwe-math.ts        # LWE key generation, encrypt, decrypt
+    web-crypto.ts      # HMAC, HKDF, AES-GCM, ECDH, ECDSA via crypto.subtle
+    parse.ts           # Shared BigInt parsing with 2000-char length guard
+    utils.ts           # UI utility (cn)
   hooks/
-    useCryptoWorker.ts   # Web Worker hook for offloading heavy crypto to a separate thread
-    useDebouncedCompute.ts # Debounced input hook to prevent recomputation on every keystroke
-    useStepMachine.ts    # Deterministic step state machine for multi-step workflows
+    useCryptoWorker.ts    # Web Worker with stale response guard (latestIdRef)
+    useDebouncedCompute.ts # 300ms debounce for input-triggered computation
+    useStepMachine.ts     # Deterministic FSM (ADVANCE/INVALIDATE/SET_INPUT)
   workers/
-    crypto.worker.ts     # Web Worker with all math functions for non-blocking computation
+    crypto.worker.ts      # General math worker with BigInt serialization
+    hash.worker.ts        # Dedicated Argon2id WASM worker (loads once, reuses)
   components/
-    Sidebar.tsx       # Navigation sidebar with categorized tool links
-    ThemeToggle.tsx    # Dark/light theme toggle
-    StepCard.tsx      # Shared step-by-step workflow card component
-    StateMatrix.tsx   # 4x4 hex byte grid + vector/matrix display components
-    SecurityBanner.tsx # Persistent educational disclaimer (BigInt timing caveat)
-    WebCryptoVerify.tsx # Reusable Web Crypto comparison component
-    pages/            # One component per tool/workflow (22 pages total)
-    ui/               # shadcn/ui base components
-  App.tsx             # Main app shell with sidebar + content routing
-  main.tsx            # Entry point
+    Sidebar.tsx           # Right-side collapsible nav with category toggles
+    ErrorBoundary.tsx     # Catches computation errors without crashing app
+    SecurityBanner.tsx    # Collapsible timing attack warning
+    StepCard.tsx          # Step-by-step workflow card
+    ShiftRowsAnimation.tsx # CSS transform animation for AES ShiftRows
+    pages/                # 35 lazy-loaded page components
+  __tests__/
+    crypto.test.ts        # AES, SHA-256, EC math, number theory test vectors
 ```
 
-### Math Engines
+## Security Headers (Deployment)
 
-All math uses JavaScript's native `BigInt` for arbitrary-precision integer arithmetic:
-
-- Extended Euclidean Algorithm for modular inverse
-- Double-and-add for EC scalar multiplication
-- Tonelli-Shanks for modular square roots
-- Miller-Rabin for primality testing (deterministic for n < 3.3 x 10^24)
-- AES S-Box, GF(2^8) multiplication with irreducible polynomial x^8+x^4+x^3+x+1
-- Paillier L-function and homomorphic operations
-- Bounded discrete logarithm search (for ElGamal)
-- LWE matrix-vector multiplication mod q
-- N-gram frequency analysis (digraphs, trigraphs)
-- Curve identification for parameter contradiction detection
-
-### Security Implementation
-
-- **CSPRNG**: All randomness via `crypto.getRandomValues()` (not `Math.random`)
-- **Web Crypto comparison**: `crypto.subtle` used for ECDSA, AES, RSA verification
-- **SHA hashing**: Web Crypto API (`crypto.subtle.digest`) for constant-time hashing
-- **Security banner**: Visible on first load, explains BigInt timing vulnerability
-
-## Educational Use
-
-This tool is designed for learning cryptography. It covers:
-
-- **Symmetric**: AES-128 with GF(2^8) polynomial matrix multiplication visualization
-- **Asymmetric**: ECDSA, RSA, ElGamal, Paillier, Diffie-Hellman with full step-by-step
-- **Hashing**: SHA-1/SHA-256 with line-ending awareness
-- **Implementation vulnerabilities**: Nonce reuse attack, RSA factorization attack
-- **Post-quantum**: LWE encryption with error analysis
-- **Classical ciphers**: Caesar, Vigenere, substitution analysis (for historical context)
-
-Key features for students:
-- Step-by-step calculation breakdowns with intermediate values
-- Web Crypto comparison buttons for constant-time verification
-- Preset curve parameter contradiction detection
-- Nonce uniqueness warnings on ECDSA signing page
-- Preset values from real coursework assignments
+Configured for Netlify (`public/_headers`) and Vercel (`vercel.json`):
+- `Content-Security-Policy: script-src 'self'; frame-ancestors 'none'`
+- `Cross-Origin-Opener-Policy: same-origin`
+- `Cross-Origin-Embedder-Policy: require-corp`
+- `X-Frame-Options: DENY` / `X-Content-Type-Options: nosniff`
+- `Cache-Control: no-cache` for index.html, `immutable` for hashed assets
 
 ## License
 
