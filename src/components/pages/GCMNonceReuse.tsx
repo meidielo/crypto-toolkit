@@ -15,7 +15,7 @@ export function GCMNonceReuse() {
   const [keyHex, setKeyHex] = useState('000102030405060708090a0b0c0d0e0f');
   const [ivHex, setIvHex] = useState('000000000000000000000001');
   const [pt1Hex, setPt1Hex] = useState('48656c6c6f20576f726c6421'); // "Hello World!"
-  const [pt2Hex, setPt2Hex] = useState('476f6f64627965205747217'); // different message
+  const [pt2Hex, setPt2Hex] = useState('476f6f6462796520574721'); // "Goodbye WG!"
   const [error, setError] = useState('');
 
   const [result1, setResult1] = useState<{ ct: number[]; tag: number[]; H: number[] } | null>(null);

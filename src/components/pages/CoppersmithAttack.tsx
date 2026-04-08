@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StepCard, ComputationRow, FormulaBox } from '@/components/StepCard';
 import { InlineWarning } from '@/components/SecurityBanner';
-import { modPow } from '@/lib/ec-math';
+import { modPow, modInverse } from '@/lib/ec-math';
 import { parseBigInt } from '@/lib/parse';
 
 // Integer cube root (Newton's method for BigInt)
@@ -60,21 +60,9 @@ export function CoppersmithAttack() {
     const N = n1 * n2 * n3;
     const N1 = N / n1, N2 = N / n2, N3 = N / n3;
 
-    // Extended Euclidean for modular inverses
-    function modInv(a: bigint, m: bigint): bigint {
-      let [old_r, r] = [a % m, m];
-      let [old_s, s] = [1n, 0n];
-      while (r !== 0n) {
-        const q = old_r / r;
-        [old_r, r] = [r, old_r - q * r];
-        [old_s, s] = [s, old_s - q * s];
-      }
-      return ((old_s % m) + m) % m;
-    }
-
-    const y1 = modInv(N1, n1);
-    const y2 = modInv(N2, n2);
-    const y3 = modInv(N3, n3);
+    const y1 = modInverse(N1, n1);
+    const y2 = modInverse(N2, n2);
+    const y3 = modInverse(N3, n3);
 
     const x = (c1 * N1 * y1 + c2 * N2 * y2 + c3 * N3 * y3) % N;
     setCrtValue(x);

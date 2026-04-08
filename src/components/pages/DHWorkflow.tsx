@@ -1,3 +1,4 @@
+import { parseBigInt } from '@/lib/parse';
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,9 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { StepCard, ComputationRow, FormulaBox } from '@/components/StepCard';
 import { modPow, isPrime } from '@/lib/crypto-math';
 
-function parseBigInt(s: string): bigint | null {
-  try { const t = s.trim(); if (!t || t.length > 2000) return null; return BigInt(t); } catch { return null; }
-}
 
 type Phase = 'setup' | 'alice' | 'bob' | 'shared';
 

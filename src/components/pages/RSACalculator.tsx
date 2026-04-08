@@ -1,3 +1,4 @@
+import { parseBigInt } from '@/lib/parse';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,15 +19,6 @@ import {
   type RSAKeyPair,
 } from '@/lib/crypto-math';
 
-function parseBigInt(s: string): bigint | null {
-  try {
-    const t = s.trim();
-    if (!t) return null;
-    return BigInt(t);
-  } catch {
-    return null;
-  }
-}
 
 export function RSACalculator() {
   const [bitSize, setBitSize] = useState('64');

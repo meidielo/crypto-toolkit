@@ -1,42 +1,45 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Sidebar } from '@/components/Sidebar';
-import { ECCalculator } from '@/components/pages/ECCalculator';
-import { RSACalculator } from '@/components/pages/RSACalculator';
-import { ModularArithmetic } from '@/components/pages/ModularArithmetic';
-import { BaseConverter } from '@/components/pages/BaseConverter';
-import { Factorization } from '@/components/pages/Factorization';
-import { CipherTools } from '@/components/pages/CipherTools';
-import { ECDSAWorkflow } from '@/components/pages/ECDSAWorkflow';
-import { PaillierWorkflow } from '@/components/pages/PaillierWorkflow';
-import { ElGamalWorkflow } from '@/components/pages/ElGamalWorkflow';
-import { RSAAttackWorkflow } from '@/components/pages/RSAAttackWorkflow';
-import { SubstitutionAnalysis } from '@/components/pages/SubstitutionAnalysis';
-import { DHWorkflow } from '@/components/pages/DHWorkflow';
-import { AESWorkflow } from '@/components/pages/AESWorkflow';
-import { NonceReuseAttack } from '@/components/pages/NonceReuseAttack';
-import { LWEWorkflow } from '@/components/pages/LWEWorkflow';
-import { SchnorrZKP } from '@/components/pages/SchnorrZKP';
-import { AESGCMWorkflow } from '@/components/pages/AESGCMWorkflow';
-import { Argon2Workflow } from '@/components/pages/Argon2Workflow';
-import { TLS13Workflow } from '@/components/pages/TLS13Workflow';
-import { ShamirSSS } from '@/components/pages/ShamirSSS';
-import { PaddingOracleAttack } from '@/components/pages/PaddingOracleAttack';
-import { TextbookRSAAttack } from '@/components/pages/TextbookRSAAttack';
-import { HashExtensionAttack } from '@/components/pages/HashExtensionAttack';
-import { GCMNonceReuse } from '@/components/pages/GCMNonceReuse';
-import { HMACWalkthrough } from '@/components/pages/HMACWalkthrough';
-import { ECBPenguin } from '@/components/pages/ECBPenguin';
-import { DHSubgroupAttack } from '@/components/pages/DHSubgroupAttack';
-import { WienerAttack } from '@/components/pages/WienerAttack';
-import { CurvePlot } from '@/components/pages/CurvePlot';
-import { BleichenbacherAttack } from '@/components/pages/BleichenbacherAttack';
-import { CoppersmithAttack } from '@/components/pages/CoppersmithAttack';
-import { CRTFaultAttack } from '@/components/pages/CRTFaultAttack';
-import { BirthdayCollision } from '@/components/pages/BirthdayCollision';
-import { ConstantTimeDemo } from '@/components/pages/ConstantTimeDemo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SecurityBanner } from '@/components/SecurityBanner';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+
+// Lazy-load all page components for code splitting
+const ECCalculator = lazy(() => import('@/components/pages/ECCalculator').then(m => ({ default: m.ECCalculator })));
+const RSACalculator = lazy(() => import('@/components/pages/RSACalculator').then(m => ({ default: m.RSACalculator })));
+const ModularArithmetic = lazy(() => import('@/components/pages/ModularArithmetic').then(m => ({ default: m.ModularArithmetic })));
+const BaseConverter = lazy(() => import('@/components/pages/BaseConverter').then(m => ({ default: m.BaseConverter })));
+const Factorization = lazy(() => import('@/components/pages/Factorization').then(m => ({ default: m.Factorization })));
+const CipherTools = lazy(() => import('@/components/pages/CipherTools').then(m => ({ default: m.CipherTools })));
+const ECDSAWorkflow = lazy(() => import('@/components/pages/ECDSAWorkflow').then(m => ({ default: m.ECDSAWorkflow })));
+const PaillierWorkflow = lazy(() => import('@/components/pages/PaillierWorkflow').then(m => ({ default: m.PaillierWorkflow })));
+const ElGamalWorkflow = lazy(() => import('@/components/pages/ElGamalWorkflow').then(m => ({ default: m.ElGamalWorkflow })));
+const RSAAttackWorkflow = lazy(() => import('@/components/pages/RSAAttackWorkflow').then(m => ({ default: m.RSAAttackWorkflow })));
+const SubstitutionAnalysis = lazy(() => import('@/components/pages/SubstitutionAnalysis').then(m => ({ default: m.SubstitutionAnalysis })));
+const DHWorkflow = lazy(() => import('@/components/pages/DHWorkflow').then(m => ({ default: m.DHWorkflow })));
+const AESWorkflow = lazy(() => import('@/components/pages/AESWorkflow').then(m => ({ default: m.AESWorkflow })));
+const NonceReuseAttack = lazy(() => import('@/components/pages/NonceReuseAttack').then(m => ({ default: m.NonceReuseAttack })));
+const LWEWorkflow = lazy(() => import('@/components/pages/LWEWorkflow').then(m => ({ default: m.LWEWorkflow })));
+const SchnorrZKP = lazy(() => import('@/components/pages/SchnorrZKP').then(m => ({ default: m.SchnorrZKP })));
+const AESGCMWorkflow = lazy(() => import('@/components/pages/AESGCMWorkflow').then(m => ({ default: m.AESGCMWorkflow })));
+const Argon2Workflow = lazy(() => import('@/components/pages/Argon2Workflow').then(m => ({ default: m.Argon2Workflow })));
+const TLS13Workflow = lazy(() => import('@/components/pages/TLS13Workflow').then(m => ({ default: m.TLS13Workflow })));
+const ShamirSSS = lazy(() => import('@/components/pages/ShamirSSS').then(m => ({ default: m.ShamirSSS })));
+const PaddingOracleAttack = lazy(() => import('@/components/pages/PaddingOracleAttack').then(m => ({ default: m.PaddingOracleAttack })));
+const TextbookRSAAttack = lazy(() => import('@/components/pages/TextbookRSAAttack').then(m => ({ default: m.TextbookRSAAttack })));
+const HashExtensionAttack = lazy(() => import('@/components/pages/HashExtensionAttack').then(m => ({ default: m.HashExtensionAttack })));
+const GCMNonceReuse = lazy(() => import('@/components/pages/GCMNonceReuse').then(m => ({ default: m.GCMNonceReuse })));
+const HMACWalkthrough = lazy(() => import('@/components/pages/HMACWalkthrough').then(m => ({ default: m.HMACWalkthrough })));
+const ECBPenguin = lazy(() => import('@/components/pages/ECBPenguin').then(m => ({ default: m.ECBPenguin })));
+const DHSubgroupAttack = lazy(() => import('@/components/pages/DHSubgroupAttack').then(m => ({ default: m.DHSubgroupAttack })));
+const WienerAttack = lazy(() => import('@/components/pages/WienerAttack').then(m => ({ default: m.WienerAttack })));
+const CurvePlot = lazy(() => import('@/components/pages/CurvePlot').then(m => ({ default: m.CurvePlot })));
+const BleichenbacherAttack = lazy(() => import('@/components/pages/BleichenbacherAttack').then(m => ({ default: m.BleichenbacherAttack })));
+const CoppersmithAttack = lazy(() => import('@/components/pages/CoppersmithAttack').then(m => ({ default: m.CoppersmithAttack })));
+const CRTFaultAttack = lazy(() => import('@/components/pages/CRTFaultAttack').then(m => ({ default: m.CRTFaultAttack })));
+const BirthdayCollision = lazy(() => import('@/components/pages/BirthdayCollision').then(m => ({ default: m.BirthdayCollision })));
+const ConstantTimeDemo = lazy(() => import('@/components/pages/ConstantTimeDemo').then(m => ({ default: m.ConstantTimeDemo })));
 
 export type Page =
   | 'ec-calculator'
@@ -199,7 +202,11 @@ export default function App() {
           </header>
           <div className="p-4 md:p-6 max-w-6xl mx-auto">
             <SecurityBanner />
-            <PageComponent />
+            <ErrorBoundary>
+              <Suspense fallback={<div className="text-center py-12 text-muted-foreground">Loading...</div>}>
+                <PageComponent />
+              </Suspense>
+            </ErrorBoundary>
           </div>
         </main>
       </div>

@@ -1,3 +1,4 @@
+import { parseBigInt } from '@/lib/parse';
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,16 +22,6 @@ import {
 } from '@/lib/ec-math';
 import { isPrime } from '@/lib/crypto-math';
 
-function parseBigInt(s: string): bigint | null {
-  try {
-    const trimmed = s.trim();
-    if (!trimmed || trimmed.length > 2000) return null;
-    if (trimmed.startsWith('-')) return -BigInt(trimmed.slice(1));
-    return BigInt(trimmed);
-  } catch {
-    return null;
-  }
-}
 
 function pointStr(P: ECPoint): string {
   if (isInfinity(P)) return 'O (infinity)';

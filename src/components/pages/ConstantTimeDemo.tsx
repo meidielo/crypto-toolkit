@@ -9,6 +9,7 @@ export function ConstantTimeDemo() {
   const [secret, setSecret] = useState('correctpassword');
   const [guess, setGuess] = useState('correctpasswXXX');
   const [results, setResults] = useState<{ method: string; time: number; match: boolean }[]>([]);
+  const [prefixTimings, setPrefixTimings] = useState<{ prefix: number; time: number }[]>([]);
   const [trials] = useState(1000);
 
   function earlyExitCompare(a: string, b: string): boolean {
@@ -60,11 +61,8 @@ export function ConstantTimeDemo() {
     });
 
     setResults(measurements);
-    // Store prefix timing data in a way the UI can display
-    (window as unknown as Record<string, unknown>).__prefixTimings = prefixTests;
+    setPrefixTimings(prefixTests);
   }
-
-  const prefixTimings = (window as unknown as Record<string, unknown[]>).__prefixTimings as { prefix: number; time: number }[] | undefined;
 
   return (
     <div className="space-y-4">
@@ -106,7 +104,7 @@ export function ConstantTimeDemo() {
               <CardContent className="pt-4 space-y-3">
                 <p className="text-xs font-medium">Early-exit timing by prefix length:</p>
                 <p className="text-xs text-muted-foreground">Longer matching prefix = more time = attacker learns correct prefix character-by-character.</p>
-                {prefixTimings && (
+                {prefixTimings.length > 0 && (
                   <div className="space-y-1">
                     {prefixTimings.map((pt, i) => (
                       <div key={i} className="flex items-center gap-2">

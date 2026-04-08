@@ -43,7 +43,7 @@ function isqrt(n: bigint): bigint | null {
 }
 
 export function WienerAttack() {
-  const [_phase, setPhase] = useState('setup');
+  const [phase, setPhase] = useState<'setup' | 'attack' | 'result'>('setup');
   // Example: p=101, q=113, n=11413, e=7467, d=23 (d < n^(1/4)/3 ≈ 3.4, so 23 > 3.4 — need bigger n)
   // Better: p=1009, q=3643, n=3675787, e=2173589, d=89 — d is small enough
   const [nStr, setNStr] = useState('3675787');
@@ -122,7 +122,7 @@ export function WienerAttack() {
         </CardHeader>
       </Card>
 
-      <StepCard step={1} title="Input: Public Key (n, e)" status={recoveredD ? 'complete' : 'active'}>
+      <StepCard step={1} title="Input: Public Key (n, e)" status={phase === 'setup' ? 'active' : 'complete'}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">n (modulus)</Label><Input value={nStr} onChange={e => setNStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">e (public exponent)</Label><Input value={eStr} onChange={e => setEStr(e.target.value)} className="font-mono" /></div>
@@ -133,7 +133,7 @@ export function WienerAttack() {
       </StepCard>
 
       {cfTerms.length > 0 && (
-        <StepCard step={2} title="Continued Fraction of e/n" status={recoveredD ? 'complete' : 'active'}>
+        <StepCard step={2} title="Continued Fraction of e/n" status={phase === 'setup' ? 'active' : 'complete'}>
           <FormulaBox>
             <ComputationRow label="CF[e/n]" value={`[${cfTerms.slice(0, 20).map(t => t.toString()).join(', ')}${cfTerms.length > 20 ? ', ...' : ''}]`} />
             <ComputationRow label="Terms" value={cfTerms.length.toString()} />

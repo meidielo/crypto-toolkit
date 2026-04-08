@@ -1,3 +1,4 @@
+import { parseBigInt } from '@/lib/parse';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,15 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { factorize, factorizeToString, isPrime, nextPrime, eulerTotient } from '@/lib/crypto-math';
 
-function parseBigInt(s: string): bigint | null {
-  try {
-    const t = s.trim();
-    if (!t) return null;
-    return BigInt(t);
-  } catch {
-    return null;
-  }
-}
 
 export function Factorization() {
   const [input, setInput] = useState('');
