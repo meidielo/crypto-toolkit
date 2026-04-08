@@ -1,6 +1,6 @@
 import type { Page } from '@/App';
 import { cn } from '@/lib/utils';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface NavItem {
   id: Page;
@@ -367,6 +367,18 @@ interface SidebarProps {
 }
 
 export function Sidebar({ currentPage, onPageChange, open, onToggle, isMobile }: SidebarProps) {
+  // Track which categories are collapsed
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
+  function toggleCategory(cat: string) {
+    setCollapsed(prev => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat);
+      else next.add(cat);
+      return next;
+    });
+  }
+
   // Close sidebar on page change (mobile only)
   const handlePageChange = (page: Page) => {
     onPageChange(page);
@@ -409,31 +421,67 @@ export function Sidebar({ currentPage, onPageChange, open, onToggle, isMobile }:
           </svg>
         </button>
       </div>
-      <nav className="flex-1 overflow-y-auto p-3 space-y-4">
-        {categories.map(cat => (
-          <div key={cat}>
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider px-3 mb-1.5">
-              {cat}
-            </p>
-            <div className="space-y-0.5">
-              {NAV_ITEMS.filter(i => i.category === cat).map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => handlePageChange(item.id)}
-                  className={cn(
-                    'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left',
-                    currentPage === item.id
-                      ? 'bg-primary/10 text-primary font-medium'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  )}
+      <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+        {/* Home button */}
+        <button
+          onClick={() => handlePageChange('home' as Page)}
+          className={cn(
+            'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left mb-2',
+            currentPage === ('home' as Page)
+              ? 'bg-primary/10 text-primary font-medium'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          )}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          <span className="truncate">Home</span>
+        </button>
+
+        {categories.map(cat => {
+          const items = NAV_ITEMS.filter(i => i.category === cat);
+          const isCollapsed = collapsed.has(cat);
+          const hasActive = items.some(i => i.id === currentPage);
+
+          return (
+            <div key={cat}>
+              <button
+                onClick={() => toggleCategory(cat)}
+                className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors rounded"
+              >
+                <span className="flex items-center gap-1">
+                  {cat}
+                  {hasActive && isCollapsed && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                </span>
+                <svg
+                  width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                  className={cn('transition-transform shrink-0', isCollapsed ? '-rotate-90' : 'rotate-0')}
                 >
-                  {item.icon}
-                  <span className="truncate">{item.label}</span>
-                </button>
-              ))}
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              {!isCollapsed && (
+                <div className="space-y-0.5 mt-0.5">
+                  {items.map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => handlePageChange(item.id)}
+                      className={cn(
+                        'w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm transition-colors text-left',
+                        currentPage === item.id
+                          ? 'bg-primary/10 text-primary font-medium'
+                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      )}
+                    >
+                      {item.icon}
+                      <span className="truncate">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </nav>
       <div className="p-3 border-t">
         <p className="text-[11px] text-muted-foreground text-center">

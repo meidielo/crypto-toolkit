@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SecurityBanner } from '@/components/SecurityBanner';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Home } from '@/components/pages/Home';
 
 // Lazy-load all page components for code splitting
 const ECCalculator = lazy(() => import('@/components/pages/ECCalculator').then(m => ({ default: m.ECCalculator })));
@@ -42,6 +43,7 @@ const BirthdayCollision = lazy(() => import('@/components/pages/BirthdayCollisio
 const ConstantTimeDemo = lazy(() => import('@/components/pages/ConstantTimeDemo').then(m => ({ default: m.ConstantTimeDemo })));
 
 export type Page =
+  | 'home'
   | 'ec-calculator'
   | 'rsa'
   | 'modular'
@@ -78,6 +80,7 @@ export type Page =
   | 'constant-time';
 
 const PAGE_COMPONENTS: Record<Page, React.FC> = {
+  home: () => null, // handled separately in render
   'ec-calculator': ECCalculator,
   rsa: RSACalculator,
   modular: ModularArithmetic,
@@ -115,6 +118,7 @@ const PAGE_COMPONENTS: Record<Page, React.FC> = {
 };
 
 const PAGE_TITLES: Record<Page, string> = {
+  home: 'CryptoToolkit',
   'ec-calculator': 'Elliptic Curve Calculator',
   rsa: 'RSA Key Generator',
   modular: 'Modular Arithmetic',
@@ -162,7 +166,7 @@ function useIsMobile() {
 }
 
 export default function App() {
-  const [page, setPage] = useState<Page>('ec-calculator');
+  const [page, setPage] = useState<Page>('home');
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const PageComponent = PAGE_COMPONENTS[page];
@@ -203,9 +207,13 @@ export default function App() {
           <div className="p-4 md:p-6 max-w-6xl mx-auto">
             <SecurityBanner />
             <ErrorBoundary>
-              <Suspense fallback={<div className="text-center py-12 text-muted-foreground">Loading...</div>}>
-                <PageComponent />
-              </Suspense>
+              {page === 'home' ? (
+                <Home onNavigate={setPage} />
+              ) : (
+                <Suspense fallback={<div className="text-center py-12 text-muted-foreground">Loading...</div>}>
+                  <PageComponent />
+                </Suspense>
+              )}
             </ErrorBoundary>
           </div>
         </main>
