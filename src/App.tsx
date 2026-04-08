@@ -179,16 +179,21 @@ export default function App() {
   return (
     <TooltipProvider>
       <div className="flex h-screen overflow-hidden bg-background">
-        <Sidebar
-          currentPage={page}
-          onPageChange={setPage}
-          open={sidebarOpen}
-          onToggle={() => setSidebarOpen(!sidebarOpen)}
-          isMobile={isMobile}
-        />
         <main className="flex-1 overflow-auto min-w-0">
           <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-background/80 backdrop-blur-sm px-4 md:px-6 py-3 gap-2">
-            <div className="flex items-center gap-2 min-w-0">
+            <button
+              onClick={() => setPage('home')}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0"
+            >
+              <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center shrink-0">
+                <span className="text-primary-foreground font-bold text-[10px]">CT</span>
+              </div>
+              <span className="text-sm md:text-base font-semibold tracking-tight truncate">
+                {page === 'home' ? 'CryptoToolkit' : PAGE_TITLES[page]}
+              </span>
+            </button>
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="p-1.5 rounded-md hover:bg-muted text-muted-foreground shrink-0"
@@ -198,19 +203,7 @@ export default function App() {
                   <path d="M3 12h18M3 6h18M3 18h18" />
                 </svg>
               </button>
-              <button
-                onClick={() => setPage('home')}
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0"
-              >
-                <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center shrink-0">
-                  <span className="text-primary-foreground font-bold text-[10px]">CT</span>
-                </div>
-                <span className="text-sm md:text-base font-semibold tracking-tight truncate">
-                  {page === 'home' ? 'CryptoToolkit' : PAGE_TITLES[page]}
-                </span>
-              </button>
             </div>
-            <ThemeToggle />
           </header>
           <div className="p-4 md:p-6 max-w-6xl mx-auto">
             <SecurityBanner />
@@ -225,6 +218,13 @@ export default function App() {
             </ErrorBoundary>
           </div>
         </main>
+        <Sidebar
+          currentPage={page}
+          onPageChange={setPage}
+          open={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+          isMobile={isMobile}
+        />
       </div>
     </TooltipProvider>
   );

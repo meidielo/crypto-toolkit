@@ -399,7 +399,7 @@ export function Sidebar({ currentPage, onPageChange, open, onToggle, isMobile }:
   const sidebarContent = (
     <aside className={cn(
       'bg-card flex flex-col h-full',
-      isMobile ? 'w-72' : 'w-64 border-r shrink-0',
+      isMobile ? 'w-72' : 'w-64 border-l shrink-0',
     )}>
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2 min-w-0">
@@ -478,13 +478,13 @@ export function Sidebar({ currentPage, onPageChange, open, onToggle, isMobile }:
   if (isMobile) {
     return (
       <div className="fixed inset-0 z-50 flex">
-        <div className="animate-in slide-in-from-left duration-200">
-          {sidebarContent}
-        </div>
         <div
           className="flex-1 bg-black/50 animate-in fade-in duration-200"
           onClick={onToggle}
         />
+        <div className="animate-in slide-in-from-right duration-200">
+          {sidebarContent}
+        </div>
       </div>
     );
   }
