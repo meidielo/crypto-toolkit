@@ -10,7 +10,7 @@
   # progress bars) compute pixel positions at runtime via React style={{}} props. CSP2's
   # 'unsafe-hashes' would need build-time hashes for every literal style string — impossible
   # with runtime-computed values. A nonce-based pipeline is tracked as future work.
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; connect-src 'self'; img-src 'self' data:; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; report-uri /csp-report
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; worker-src 'self'; connect-src 'self'; img-src 'self' data:; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; report-uri /csp-report
 
 /index.html
   Cache-Control: no-cache

@@ -90,7 +90,7 @@
 - [x] Explicit HSTS (max-age=2y, preload) in `_headers` + `vercel.json`
 - [x] CSP `report-uri /csp-report` added — falls back to Vercel access logs if no endpoint exists (noted in review)
 - [x] Clarifying comments: millerRabin determinism bounds, webCryptoAESEncrypt zero-IV algebra proof, keyExpansionCache Map iteration order
-- [ ] `worker-src blob:` — investigation deferred; Argon2 WASM worker likely needs `blob:` for its wasm URL
+- [x] `worker-src blob:` — removed; Vite `?worker` import emits a real asset URL, not a blob
 
 ### Verification
 - [x] `npm run lint` — 4 pre-existing errors remain (3 shadcn UI files, 1 useDebouncedCompute), all unrelated to audit scope
