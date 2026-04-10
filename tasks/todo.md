@@ -1,6 +1,6 @@
 # CryptoToolkit - Task Tracker
 
-## Current State: 35 pages, 20 tests, code-split, deployed
+## Current State: 35 pages, 66 tests, code-split, deployed
 
 ## Completed Phases
 
@@ -30,10 +30,9 @@
 - [x] HMAC-SHA256 walkthrough
 
 ### Phase 6: Performance Architecture
-- [x] useCryptoWorker with stale response guard
 - [x] useDebouncedValue for input throttling
-- [x] useStepMachine deterministic FSM
 - [x] hash.worker.ts dedicated Argon2id WASM worker
+- [x] ~~useCryptoWorker, useStepMachine~~ — removed in cleanup (never adopted by any component)
 
 ### Phase 7-8: Audit Fixes
 - [x] AES-ECB decrypt (real inverse cipher for Padding Oracle)

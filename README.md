@@ -59,7 +59,7 @@ An interactive educational cryptography platform with 35 modules covering symmet
 - **React 19** + **Vite 8** — Code-split with React.lazy (main bundle 217KB → 65KB gzipped)
 - **TypeScript 5.9** — Strict mode with noUnusedLocals
 - **Tailwind CSS v4** + **shadcn/ui** — Dark/light theme, responsive 320px-1280px+
-- **Vitest** — 20 tests covering AES (FIPS 197), SHA-256 (FIPS 180-4), EC math, number theory
+- **Vitest** — 66 tests covering AES, SHA-256, EC math, number theory, RSA, Bleichenbacher, parsing
 - **BigInt** — Arbitrary precision, no external math libraries
 - **Web Crypto API** — CSPRNG, constant-time ECDSA/AES/RSA comparison
 - **hash-wasm** — Argon2id WASM in dedicated Web Worker
@@ -71,7 +71,7 @@ An interactive educational cryptography platform with 35 modules covering symmet
 npm install
 npm run dev      # dev server at localhost:5173
 npm run build    # production build
-npm test         # 20 tests
+npm test         # 66 tests
 ```
 
 ## Architecture
