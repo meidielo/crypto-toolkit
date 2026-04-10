@@ -287,6 +287,16 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
+    id: 'mitm',
+    label: 'Meet-in-the-Middle',
+    category: 'Attacks',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <path d="M5 3v18M19 3v18M5 12h14" /><circle cx="12" cy="12" r="2" />
+      </svg>
+    ),
+  },
+  {
     id: 'ecb-penguin',
     label: 'ECB Penguin',
     category: 'Attacks',
@@ -343,6 +353,16 @@ const NAV_ITEMS: NavItem[] = [
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
         <circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
+      </svg>
+    ),
+  },
+  {
+    id: 'lll',
+    label: 'LLL Reduction',
+    category: 'Advanced',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <path d="M2 20L12 4l10 16" /><line x1="4" y1="16" x2="20" y2="16" />
       </svg>
     ),
   },

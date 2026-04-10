@@ -71,6 +71,7 @@ const CATEGORIES: { name: string; icon: string; accent: string; bg: string; page
       { id: 'crt-fault', label: 'CRT Fault', desc: 'Fault injection' },
       { id: 'dh-subgroup', label: 'DH Subgroup', desc: 'Small-order attack' },
       { id: 'ecb-penguin', label: 'ECB Penguin', desc: 'Pattern leakage' },
+      { id: 'mitm', label: 'Meet-in-the-Middle', desc: '2DES MITM attack' },
     ],
   },
   {
@@ -83,6 +84,7 @@ const CATEGORIES: { name: string; icon: string; accent: string; bg: string; page
       { id: 'schnorr', label: 'Schnorr ZKP', desc: 'Zero-knowledge proof' },
       { id: 'birthday', label: 'Birthday Collision', desc: 'Hash collision finder' },
       { id: 'constant-time', label: 'Constant-Time', desc: 'Timing attack demo' },
+      { id: 'lll', label: 'LLL Reduction', desc: '2D lattice basis reduction' },
     ],
   },
   {

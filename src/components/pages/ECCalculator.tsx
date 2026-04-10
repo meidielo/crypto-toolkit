@@ -13,12 +13,15 @@ import {
   identifyCurve,
   pointAddWithSteps,
   scalarMultiplyWithSteps,
+  montgomeryLadder,
+  babyGiantStep,
   getAllPointsFast,
   getPointOrder,
   isInfinity,
   type ECPoint,
   type PointAdditionSteps,
   type ScalarMultiplyStep,
+  type MontgomeryStep,
 } from '@/lib/ec-math';
 import { isPrime } from '@/lib/crypto-math';
 
@@ -54,6 +57,21 @@ export function ECCalculator() {
   const [spy, setSpy] = useState('');
   const [mulResult, setMulResult] = useState<{ result: ECPoint; steps: ScalarMultiplyStep[] } | null>(null);
   const [mulError, setMulError] = useState('');
+
+  // Montgomery ladder
+  const [mk, setMk] = useState('');
+  const [mpx, setMpx] = useState('');
+  const [mpy, setMpy] = useState('');
+  const [montResult, setMontResult] = useState<{ result: ECPoint; steps: MontgomeryStep[] } | null>(null);
+  const [montError, setMontError] = useState('');
+
+  // BSGS discrete log
+  const [bgGx, setBgGx] = useState('');
+  const [bgGy, setBgGy] = useState('');
+  const [bgQx, setBgQx] = useState('');
+  const [bgQy, setBgQy] = useState('');
+  const [bsgsResult, setBsgsResult] = useState<{ k: bigint | null; babySteps: number; giantSteps: number; totalOps: number; order: bigint } | null>(null);
+  const [bsgsError, setBsgsError] = useState('');
 
   const A = parseBigInt(aStr);
   const B = parseBigInt(bStr);
@@ -150,6 +168,53 @@ export function ECCalculator() {
     }
   }
 
+  function doMontgomery() {
+    setMontError('');
+    setMontResult(null);
+    if (A === null || B === null || p === null || !curveValid.valid) {
+      setMontError('Invalid curve parameters');
+      return;
+    }
+    const k = parseBigInt(mk), x = parseBigInt(mpx), y = parseBigInt(mpy);
+    if (k === null || x === null || y === null) {
+      setMontError('Enter scalar k and point coordinates');
+      return;
+    }
+    const P: ECPoint = { x, y };
+    if (!isOnCurve(P, A, B, p)) { setMontError(`P = ${pointStr(P)} is not on the curve`); return; }
+    try {
+      setMontResult(montgomeryLadder(k, P, A, p));
+    } catch (e) {
+      setMontError(String(e));
+    }
+  }
+
+  function doBSGS() {
+    setBsgsError('');
+    setBsgsResult(null);
+    if (A === null || B === null || p === null || !curveValid.valid) {
+      setBsgsError('Invalid curve parameters');
+      return;
+    }
+    const gx = parseBigInt(bgGx), gy = parseBigInt(bgGy);
+    const qx = parseBigInt(bgQx), qy = parseBigInt(bgQy);
+    if (gx === null || gy === null || qx === null || qy === null) {
+      setBsgsError('Enter base point G and target point Q');
+      return;
+    }
+    const G: ECPoint = { x: gx, y: gy };
+    const Q: ECPoint = { x: qx, y: qy };
+    if (!isOnCurve(G, A, B, p)) { setBsgsError(`G = ${pointStr(G)} is not on the curve`); return; }
+    if (!isOnCurve(Q, A, B, p)) { setBsgsError(`Q = ${pointStr(Q)} is not on the curve`); return; }
+    try {
+      const order = getPointOrder(G, A, B, p);
+      const result = babyGiantStep(G, Q, A, p, order);
+      setBsgsResult({ ...result, order });
+    } catch (e) {
+      setBsgsError(String(e));
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Curve Configuration */}
@@ -218,9 +283,11 @@ export function ECCalculator() {
 
       <Tabs defaultValue="add" className="w-full">
         <TabsList className="w-full flex">
-          <TabsTrigger value="add">Point Addition</TabsTrigger>
-          <TabsTrigger value="mul">Scalar Multiply</TabsTrigger>
-          <TabsTrigger value="points">Points Table</TabsTrigger>
+          <TabsTrigger value="add">Addition</TabsTrigger>
+          <TabsTrigger value="mul">Multiply</TabsTrigger>
+          <TabsTrigger value="montgomery">Montgomery</TabsTrigger>
+          <TabsTrigger value="bsgs">BSGS</TabsTrigger>
+          <TabsTrigger value="points">Points</TabsTrigger>
         </TabsList>
 
         {/* Point Addition */}
@@ -345,6 +412,171 @@ export function ECCalculator() {
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Montgomery Ladder */}
+        <TabsContent value="montgomery">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Montgomery Ladder: k × P</CardTitle>
+              <CardDescription>Constant-time scalar multiplication — same operations for bit=0 and bit=1, resisting simple power analysis (SPA)</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <Label htmlFor="mk">k (scalar)</Label>
+                  <Input id="mk" value={mk} onChange={e => setMk(e.target.value)} placeholder="5" className="font-mono" />
+                </div>
+                <div>
+                  <Label htmlFor="mpx">P.x</Label>
+                  <Input id="mpx" value={mpx} onChange={e => setMpx(e.target.value)} placeholder="0" className="font-mono" />
+                </div>
+                <div>
+                  <Label htmlFor="mpy">P.y</Label>
+                  <Input id="mpy" value={mpy} onChange={e => setMpy(e.target.value)} placeholder="0" className="font-mono" />
+                </div>
+              </div>
+              <Button onClick={doMontgomery} className="w-full">Compute kP (Montgomery)</Button>
+              {montError && <p className="text-sm text-destructive">{montError}</p>}
+              {montResult && (
+                <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge>Result</Badge>
+                    <span className="font-mono font-semibold text-lg">{pointStr(montResult.result)}</span>
+                  </div>
+                  {montResult.steps.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium mb-2">Montgomery ladder steps (MSB → LSB):</p>
+                      <div className="overflow-auto max-h-72">
+                        <table className="w-full text-sm">
+                          <thead className="sticky top-0 bg-muted">
+                            <tr className="border-b">
+                              <th className="text-left py-1.5 px-2">Bit</th>
+                              <th className="text-left py-1.5 px-2">Value</th>
+                              <th className="text-left py-1.5 px-2">Operation</th>
+                              <th className="text-left py-1.5 px-2">R0</th>
+                              <th className="text-left py-1.5 px-2">R1</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {montResult.steps.map((step, i) => (
+                              <tr key={i} className="border-b">
+                                <td className="py-1 px-2 font-mono">{step.bit}</td>
+                                <td className="py-1 px-2 font-mono font-bold">{step.bitValue}</td>
+                                <td className="py-1 px-2 font-mono text-xs">{step.operation}</td>
+                                <td className="py-1 px-2 font-mono text-xs">{pointStr(step.R0)}</td>
+                                <td className="py-1 px-2 font-mono text-xs">{pointStr(step.R1)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Every bit processes exactly one ADD + one DOUBLE. An attacker measuring power consumption
+                        sees the same pattern regardless of the secret scalar — this is the key advantage over double-and-add.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* BSGS Discrete Log */}
+        <TabsContent value="bsgs">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Baby-step Giant-step: find k where kG = Q</CardTitle>
+              <CardDescription>O(√n) algorithm for the Elliptic Curve Discrete Logarithm Problem (ECDLP). Requires p ≤ 10000.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-semibold">Base Point G</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="bgGx" className="text-xs text-muted-foreground">G.x</Label>
+                      <Input id="bgGx" value={bgGx} onChange={e => setBgGx(e.target.value)} placeholder="0" className="font-mono" />
+                    </div>
+                    <div>
+                      <Label htmlFor="bgGy" className="text-xs text-muted-foreground">G.y</Label>
+                      <Input id="bgGy" value={bgGy} onChange={e => setBgGy(e.target.value)} placeholder="0" className="font-mono" />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-semibold">Target Point Q</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="bgQx" className="text-xs text-muted-foreground">Q.x</Label>
+                      <Input id="bgQx" value={bgQx} onChange={e => setBgQx(e.target.value)} placeholder="0" className="font-mono" />
+                    </div>
+                    <div>
+                      <Label htmlFor="bgQy" className="text-xs text-muted-foreground">Q.y</Label>
+                      <Input id="bgQy" value={bgQy} onChange={e => setBgQy(e.target.value)} placeholder="0" className="font-mono" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {allPoints && allPoints.length <= 200 && (
+                <div className="flex flex-wrap gap-1">
+                  <span className="text-xs text-muted-foreground mr-1 self-center">Quick pick:</span>
+                  {allPoints.slice(0, 20).map((pt, i) => (
+                    <Badge
+                      key={i}
+                      variant="outline"
+                      className="cursor-pointer text-xs font-mono"
+                      onClick={() => {
+                        if (!bgGx && !bgGy) { setBgGx(pt.x.toString()); setBgGy(pt.y.toString()); }
+                        else { setBgQx(pt.x.toString()); setBgQy(pt.y.toString()); }
+                      }}
+                    >
+                      ({pt.x.toString()},{pt.y.toString()})
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <Button onClick={doBSGS} className="w-full">Solve ECDLP</Button>
+              {bsgsError && <p className="text-sm text-destructive">{bsgsError}</p>}
+              {bsgsResult && (
+                <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge variant={bsgsResult.k !== null ? 'default' : 'destructive'}>
+                      {bsgsResult.k !== null ? 'Solution Found' : 'No Solution'}
+                    </Badge>
+                    {bsgsResult.k !== null && (
+                      <span className="font-mono font-semibold text-lg">k = {bsgsResult.k.toString()}</span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Order of G</span>
+                      <p className="font-mono font-semibold">{bsgsResult.order.toString()}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">m = ⌈√order⌉</span>
+                      <p className="font-mono font-semibold">{bsgsResult.babySteps}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Baby steps</span>
+                      <p className="font-mono font-semibold">{bsgsResult.babySteps}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Giant steps</span>
+                      <p className="font-mono font-semibold">{bsgsResult.giantSteps}</p>
+                    </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p><strong>Total operations:</strong> {bsgsResult.totalOps} (BSGS) vs {bsgsResult.order.toString()} (brute force)</p>
+                    <p>BSGS achieves O(√n) time and space by precomputing a table of baby steps jG, then
+                       checking if Q − imG matches any table entry. This is the best generic ECDLP solver —
+                       real-world curves use orders ≈ 2²⁵⁶ to make even √n infeasible.</p>
+                  </div>
                 </div>
               )}
             </CardContent>

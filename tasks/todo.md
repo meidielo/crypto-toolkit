@@ -1,6 +1,6 @@
 # CryptoToolkit - Task Tracker
 
-## Current State: 35 pages, 66 tests, code-split, deployed
+## Current State: 37 pages, 81 tests, code-split, deployed
 
 ## Completed Phases
 
@@ -63,11 +63,12 @@
 - [x] React.lazy code splitting (main bundle 520KB → 217KB)
 - [x] ErrorBoundary wraps all pages
 
-## Future
-- [ ] Montgomery ladder + BSGS exposed in UI tabs
-- [ ] Shamir multi-tab key ceremony
-- [ ] 2D lattice reduction (LLL) visualization
-- [ ] Meet-in-the-middle on 2DES
+### Phase 12: Backlog Features
+- [x] Montgomery ladder + BSGS tabs in EC Calculator (constant-time SPA resistance, O(√n) discrete log)
+- [x] Shamir 4-tab key ceremony (Dealer Setup → Distribution → Reconstruct → Security analysis)
+- [x] 2D LLL lattice reduction visualization (SVG vector plot, step-by-step, orthogonality defect)
+- [x] Meet-in-the-middle on 2DES (S-DES explorer, double encrypt demo, MITM attack with 2^10 table)
+- [x] New math libraries: `src/lib/lll-math.ts`, `src/lib/sdes.ts` with 15 new tests
 
 ## Phase 11: Audit Sweep ✅
 

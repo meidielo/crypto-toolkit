@@ -41,6 +41,8 @@ const CoppersmithAttack = lazy(() => import('@/components/pages/CoppersmithAttac
 const CRTFaultAttack = lazy(() => import('@/components/pages/CRTFaultAttack').then(m => ({ default: m.CRTFaultAttack })));
 const BirthdayCollision = lazy(() => import('@/components/pages/BirthdayCollision').then(m => ({ default: m.BirthdayCollision })));
 const ConstantTimeDemo = lazy(() => import('@/components/pages/ConstantTimeDemo').then(m => ({ default: m.ConstantTimeDemo })));
+const LLLVisualization = lazy(() => import('@/components/pages/LLLVisualization').then(m => ({ default: m.LLLVisualization })));
+const MeetInTheMiddle = lazy(() => import('@/components/pages/MeetInTheMiddle').then(m => ({ default: m.MeetInTheMiddle })));
 
 export type Page =
   | 'home'
@@ -77,7 +79,9 @@ export type Page =
   | 'coppersmith'
   | 'crt-fault'
   | 'birthday'
-  | 'constant-time';
+  | 'constant-time'
+  | 'lll'
+  | 'mitm';
 
 const PAGE_COMPONENTS: Record<Page, React.FC> = {
   home: () => null, // handled separately in render
@@ -115,6 +119,8 @@ const PAGE_COMPONENTS: Record<Page, React.FC> = {
   'crt-fault': CRTFaultAttack,
   birthday: BirthdayCollision,
   'constant-time': ConstantTimeDemo,
+  lll: LLLVisualization,
+  mitm: MeetInTheMiddle,
 };
 
 const PAGE_TITLES: Record<Page, string> = {
@@ -153,6 +159,8 @@ const PAGE_TITLES: Record<Page, string> = {
   'crt-fault': 'CRT-RSA Fault Injection',
   birthday: 'Birthday Collision Finder',
   'constant-time': 'Constant-Time Comparison',
+  lll: 'LLL Lattice Reduction',
+  mitm: 'Meet-in-the-Middle Attack',
 };
 
 // Tracks viewport width and invokes onMobile whenever the viewport transitions
@@ -182,7 +190,7 @@ const VALID_PAGES = new Set(Object.keys({
   argon2: 0, tls13: 0, 'padding-oracle': 0, 'textbook-rsa': 0, 'hash-extension': 0,
   shamir: 0, 'gcm-nonce': 0, hmac: 0, 'ecb-penguin': 0, 'dh-subgroup': 0, wiener: 0,
   'curve-plot': 0, bleichenbacher: 0, coppersmith: 0, 'crt-fault': 0, birthday: 0,
-  'constant-time': 0,
+  'constant-time': 0, lll: 0, mitm: 0,
 } satisfies Record<Page, number>));
 
 function pageFromHash(): Page {
