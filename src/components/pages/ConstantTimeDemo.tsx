@@ -76,6 +76,20 @@ export function ConstantTimeDemo() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-700 dark:text-amber-400 space-y-1">
+        <p className="font-semibold">JavaScript caveat — this is a pedagogical demo, not a security guarantee</p>
+        <p>
+          JavaScript engines (V8, SpiderMonkey, JavaScriptCore) do <strong>not</strong> guarantee constant-time
+          execution for either version below. The JIT may inline, unroll, specialize on input, or
+          branch-predict around the XOR loop; <code>charCodeAt</code> bounds checks add their own
+          input-dependent timing; GC pauses and background JIT tiers add noise. The early-exit
+          version leaks prefix length <em>clearly and reproducibly</em>, and the XOR version
+          leaks <em>less</em> — but "less" is not "nothing". For real constant-time comparison,
+          use <code>crypto.subtle.verify</code> (for MACs) or Node's <code>crypto.timingSafeEqual</code>,
+          which are implemented in native code with actual constant-time guarantees.
+        </p>
+      </div>
+
       <StepCard step={1} title="Setup" status={results.length > 0 ? 'complete' : 'active'}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">Secret (server-side)</Label><Input value={secret} onChange={e => setSecret(e.target.value)} className="font-mono" /></div>

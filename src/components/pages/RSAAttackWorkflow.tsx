@@ -7,16 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StepCard, ComputationRow, FormulaBox } from '@/components/StepCard';
 import { mod, modPow, modInverse, gcd } from '@/lib/crypto-math';
-
-
-function isqrt(n: bigint): bigint {
-  if (n < 0n) throw new Error('sqrt of negative');
-  if (n === 0n) return 0n;
-  let x = n;
-  let y = (x + 1n) / 2n;
-  while (y < x) { x = y; y = (x + n / x) / 2n; }
-  return x;
-}
+import { isqrt } from '@/lib/num-util';
 
 export function RSAAttackWorkflow() {
   const [nStr, setNStr] = useState('10009999019');

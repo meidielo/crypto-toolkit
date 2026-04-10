@@ -8,23 +8,7 @@ import { StepCard, ComputationRow, FormulaBox } from '@/components/StepCard';
 import { InlineWarning } from '@/components/SecurityBanner';
 import { modPow, modInverse } from '@/lib/ec-math';
 import { parseBigInt } from '@/lib/parse';
-
-// Integer cube root (Newton's method for BigInt)
-function icbrt(n: bigint): bigint {
-  if (n <= 0n) return 0n;
-  let x = 1n;
-  // Initial guess
-  const bits = n.toString(2).length;
-  x = 1n << BigInt(Math.ceil(bits / 3));
-  while (true) {
-    const x1 = (2n * x + n / (x * x)) / 3n;
-    if (x1 >= x) break;
-    x = x1;
-  }
-  // Fine-tune
-  while ((x + 1n) * (x + 1n) * (x + 1n) <= n) x++;
-  return x;
-}
+import { icbrt } from '@/lib/num-util';
 
 type Phase = 'setup' | 'encrypt' | 'attack';
 

@@ -9,6 +9,7 @@ import { InlineWarning } from '@/components/SecurityBanner';
 import { mod, modPow, modInverse } from '@/lib/ec-math';
 import { gcd } from '@/lib/crypto-math';
 import { parseBigInt } from '@/lib/parse';
+import { randMod } from '@/lib/num-util';
 
 type Phase = 'setup' | 'sign' | 'fault' | 'factor';
 
@@ -21,7 +22,6 @@ export function CRTFaultAttack() {
   const [error, setError] = useState('');
 
   const [n, setN] = useState<bigint | null>(null);
-  const [_d, setD] = useState<bigint | null>(null);
   const [dp, setDp] = useState<bigint | null>(null);
   const [dq, setDq] = useState<bigint | null>(null);
   const [correctSig, setCorrectSig] = useState<bigint | null>(null);
@@ -37,7 +37,6 @@ export function CRTFaultAttack() {
     const phi = (p - 1n) * (q - 1n);
     const dVal = modInverse(e, phi);
     setN(nVal);
-    setD(dVal);
     setDp(mod(dVal, p - 1n));
     setDq(mod(dVal, q - 1n));
 
@@ -56,8 +55,9 @@ export function CRTFaultAttack() {
 
     // Faulty computation: inject a bit flip in sp (CRT component for p)
     const sp_correct = modPow(m, dp, p);
-    // Flip a random bit to simulate hardware fault
-    const bitPos = BigInt(Math.floor(Math.random() * 6)); // small bit position
+    // Flip a random bit to simulate hardware fault. randMod is CSPRNG-backed —
+    // Math.random is banned repo-wide (see eslint config).
+    const bitPos = BigInt(randMod(6));
     const sp_faulty = sp_correct ^ (1n << bitPos);
 
     const sq = modPow(m, dq, q);

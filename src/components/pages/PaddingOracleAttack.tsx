@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { StepCard, ComputationRow, FormulaBox } from '@/components/StepCard';
 import { InlineWarning } from '@/components/SecurityBanner';
 import { aesECB, aesECBDecrypt, bytesToHexAES, hexToBytesAES } from '@/lib/aes-math';
+import { randBytes } from '@/lib/num-util';
 
 // PKCS#7 padding
 function pkcs7Pad(data: number[], blockSize: number): number[] {
@@ -65,11 +66,7 @@ export function PaddingOracleAttack() {
       const key = hexToBytesAES(keyHex);
       if (key.length !== 16) { setError('Key must be 16 bytes'); return; }
       const ptBytes = Array.from(new TextEncoder().encode(plaintext));
-      const ivBytes = Array.from({ length: 16 }, () => {
-        const arr = new Uint8Array(1);
-        crypto.getRandomValues(arr);
-        return arr[0];
-      });
+      const ivBytes = Array.from(randBytes(16));
       const blocks = aesCBCEncrypt(ptBytes, key, ivBytes);
       setIv(ivBytes);
       setCtBlocks(blocks);

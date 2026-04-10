@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StepCard, ComputationRow, FormulaBox } from '@/components/StepCard';
 import { SHA256 } from '@/lib/sha256';
+import { randBytes } from '@/lib/num-util';
 
 export function BirthdayCollision() {
   const [truncBits, setTruncBits] = useState('24');
@@ -29,9 +30,14 @@ export function BirthdayCollision() {
       let attempts = 0;
       const maxAttempts = 1 << Math.min(bits, 24); // cap at 2^24
 
+      // One CSPRNG-derived session nonce so each run produces a different pair
+      // without drawing entropy in the hot loop (and without mixing in Date.now,
+      // which is inconsistent with the CSPRNG-only philosophy).
+      const seed = Array.from(randBytes(4)).map(b => b.toString(16).padStart(2, '0')).join('');
+
       for (let i = 0; i < maxAttempts; i++) {
         attempts++;
-        const msg = `msg_${i}_${Date.now() % 10000}`;
+        const msg = `msg_${seed}_${i}`;
         const fullHash = SHA256.hash(msg);
         const truncated = parseInt(fullHash.substring(0, Math.ceil(bits / 4)), 16) & mask;
 

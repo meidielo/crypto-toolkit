@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { StepCard, ComputationRow, FormulaBox } from '@/components/StepCard';
 import { mod, modPow, modInverse } from '@/lib/ec-math';
 import { isPrime } from '@/lib/crypto-math';
+import { randModBig } from '@/lib/num-util';
 
 
 type Phase = 'setup' | 'split' | 'reconstruct';
@@ -36,11 +37,12 @@ export function ShamirSSS() {
     if (t < 2 || t > n || n < 2 || n > 20) { setError('Need 2 ≤ threshold ≤ total ≤ 20'); return; }
 
     // Generate random polynomial f(x) = secret + a1*x + a2*x^2 + ... + a(t-1)*x^(t-1) mod p
+    // Rejection sampling (randModBig) — unbiased, so each coefficient is
+    // uniform in [0, p). Biased sampling would skew share distribution and
+    // weaken the information-theoretic security claim in the UI.
     const coeffs: bigint[] = [secret];
     for (let i = 1; i < t; i++) {
-      const arr = new Uint32Array(1);
-      crypto.getRandomValues(arr);
-      coeffs.push(mod(BigInt(arr[0]), p));
+      coeffs.push(randModBig(p));
     }
     setCoefficients(coeffs);
 

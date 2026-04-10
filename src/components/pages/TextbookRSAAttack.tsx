@@ -42,20 +42,36 @@ export function TextbookRSAAttack() {
   }
 
   function doAttack() {
+    setError('');
     const n = parseBigInt(nStr)!, e = parseBigInt(eStr)!, d = parseBigInt(dStr)!;
     if (!ciphertext) return;
+    const m = parseBigInt(mStr);
 
     // Chosen-ciphertext attack: multiply ciphertext by 2^e mod n
     const factor = 2n;
     const factorE = modPow(factor, e, n); // 2^e mod n
     const tamperedC = mod(ciphertext * factorE, n); // c * 2^e mod n
 
-    // When server decrypts c': D(c * 2^e) = D(c) * 2 = m * 2
+    // When server decrypts c': D(c · 2^e) = D(c) · 2 = 2m — but only if 2m < n.
+    // If 2m ≥ n, the multiplication wraps: D = 2m mod n, which is generally
+    // odd and no longer divisible by 2. This is the real failure mode — the
+    // "divisibility" check below is the *symptom*, not the cause.
+    if (m !== null && 2n * m >= n) {
+      setError(
+        `Precondition 2m < n violated: 2m = ${(2n * m).toString()} ≥ n = ${n.toString()}. ` +
+        `The attack relies on 2m not wrapping around the modulus. Pick a smaller m (e.g. m < n/2), or a larger n.`,
+      );
+      return;
+    }
+
     const tamperedM = rsaDecrypt(tamperedC, d, n);
 
-    // Verify divisibility before integer division
+    // Safety check in case the caller fiddled with d and the two decryptions diverge.
     if (mod(tamperedM, factor) !== 0n) {
-      setError('Attack produced non-divisible result — try different parameters where m*2 < n');
+      setError(
+        'Tampered plaintext is odd — the server decrypted 2m mod n, which wrapped. ' +
+        'Ensure 2·m < n and that (e, d) are a valid RSA key pair.',
+      );
       return;
     }
     const originalM = tamperedM / factor;

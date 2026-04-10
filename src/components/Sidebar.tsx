@@ -1,6 +1,6 @@
 import type { Page } from '@/App';
 import { cn } from '@/lib/utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface NavItem {
   id: Page;
@@ -366,16 +366,55 @@ interface SidebarProps {
   isMobile: boolean;
 }
 
+const COLLAPSED_STORAGE_KEY = 'crypto-toolkit:sidebar-collapsed';
+
 export function Sidebar({ currentPage, onPageChange, open, onToggle, isMobile }: SidebarProps) {
-  // All categories collapsed by default
   const categories = Array.from(new Set(NAV_ITEMS.map(i => i.category)));
-  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set(categories));
+  // Which category contains the active page? Used to auto-expand on mount and
+  // whenever the user navigates, so opening the sidebar always reveals "where
+  // am I?" without requiring the user to hunt through collapsed groups.
+  const activeCategory = NAV_ITEMS.find(i => i.id === currentPage)?.category;
+  // Persist collapsed categories to localStorage so reloads remember the user's
+  // chosen layout. Falls back to "all collapsed except active" on first visit
+  // or when storage is unavailable (private mode, quota errors, etc.).
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => {
+    const initial = new Set(categories);
+    if (activeCategory) initial.delete(activeCategory);
+    try {
+      const raw = localStorage.getItem(COLLAPSED_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          const stored = new Set(parsed.filter((s: unknown): s is string => typeof s === 'string'));
+          // Always expand the active category on load even if localStorage had it collapsed.
+          if (activeCategory) stored.delete(activeCategory);
+          return stored;
+        }
+      }
+    } catch { /* ignore corrupt storage */ }
+    return initial;
+  });
+
+  // Derive the actually-rendered collapsed set: the persisted user preference
+  // with the active category forcibly expanded. Using a derived value rather
+  // than a setState-in-effect keeps the component's effect-free and dodges
+  // the react-hooks/set-state-in-effect lint rule (this is "state sync from
+  // state", which React prefers you compute during render).
+  const renderedCollapsed = useMemo(() => {
+    if (!activeCategory || !collapsed.has(activeCategory)) return collapsed;
+    const next = new Set(collapsed);
+    next.delete(activeCategory);
+    return next;
+  }, [collapsed, activeCategory]);
 
   function toggleCategory(cat: string) {
     setCollapsed(prev => {
       const next = new Set(prev);
       if (next.has(cat)) next.delete(cat);
       else next.add(cat);
+      try {
+        localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(Array.from(next)));
+      } catch { /* ignore quota errors */ }
       return next;
     });
   }
@@ -397,10 +436,13 @@ export function Sidebar({ currentPage, onPageChange, open, onToggle, isMobile }:
   if (!open) return null;
 
   const sidebarContent = (
-    <aside className={cn(
-      'bg-card flex flex-col h-full',
-      isMobile ? 'w-72' : 'w-64 border-l shrink-0',
-    )}>
+    <aside
+      aria-label="Tool navigation"
+      className={cn(
+        'bg-card flex flex-col h-full',
+        isMobile ? 'w-72' : 'w-64 border-l shrink-0',
+      )}
+    >
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
@@ -423,14 +465,16 @@ export function Sidebar({ currentPage, onPageChange, open, onToggle, isMobile }:
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
         {categories.map(cat => {
           const items = NAV_ITEMS.filter(i => i.category === cat);
-          const isCollapsed = collapsed.has(cat);
+          const isCollapsed = renderedCollapsed.has(cat);
           const hasActive = items.some(i => i.id === currentPage);
 
           return (
             <div key={cat}>
               <button
                 onClick={() => toggleCategory(cat)}
-                className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors rounded"
+                aria-expanded={!isCollapsed}
+                aria-label={`${isCollapsed ? 'Expand' : 'Collapse'} ${cat} category`}
+                className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-colors rounded"
               >
                 <span className="flex items-center gap-1">
                   {cat}

@@ -22,6 +22,11 @@ import {
 } from '@/lib/ec-math';
 import { isPrime } from '@/lib/crypto-math';
 
+// Cap on how many points we render in the "All Points" table. At p=1009 the
+// group has ~1000 elements, and rendering that many rows (each with nested
+// cells and a per-row order computation) stalls the main thread. 300 is
+// enough to see the structure and still scroll, without freezing the page.
+const POINTS_TABLE_CAP = 300;
 
 function pointStr(P: ECPoint): string {
   if (isInfinity(P)) return 'O (infinity)';
@@ -353,7 +358,7 @@ export function ECCalculator() {
               <CardTitle className="text-lg">All Points on the Curve</CardTitle>
               <CardDescription>
                 {allPoints
-                  ? `${allPoints.length} points + point at infinity (O)`
+                  ? `${allPoints.length} points + point at infinity (O)${allPoints.length > POINTS_TABLE_CAP ? ` — showing first ${POINTS_TABLE_CAP}` : ''}`
                   : p && p > 1009n
                   ? 'Prime too large to enumerate (max p ≤ 1009)'
                   : 'Configure a valid curve first'}
@@ -373,7 +378,7 @@ export function ECCalculator() {
                       </tr>
                     </thead>
                     <tbody>
-                      {allPoints.map((pt, i) => {
+                      {allPoints.slice(0, POINTS_TABLE_CAP).map((pt, i) => {
                         const order = p! <= 97n ? getPointOrder(pt, A!, B!, p!) : 0n;
                         const isGen = order > 0n && allPoints && BigInt(allPoints.length + 1) === order;
                         return (
@@ -397,6 +402,12 @@ export function ECCalculator() {
                       })}
                     </tbody>
                   </table>
+                  {allPoints.length > POINTS_TABLE_CAP && (
+                    <p className="text-xs text-muted-foreground py-3 px-3 border-t">
+                      {allPoints.length - POINTS_TABLE_CAP} more points hidden — rendering all {allPoints.length}+
+                      rows at once stalls the browser. Use a smaller prime p to view the full group.
+                    </p>
+                  )}
                 </div>
               )}
             </CardContent>

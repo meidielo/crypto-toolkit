@@ -167,6 +167,36 @@ export function LWEWorkflow() {
                   Sent: {msgBit}, Received: {decResult.bit}
                 </span>
               </div>
+              {decResult.bit !== parseInt(msgBit) && (() => {
+                // Noise = distance between the raw "v - u·s" value and the
+                // plaintext-slot center. If the sent bit was 0 the center is
+                // 0 (≡ q); if it was 1 the center is ⌊q/2⌋. The decryption
+                // succeeds iff |noise| < q/4. When it fails, the noise has
+                // crossed that threshold and the nearest-center rule picks
+                // the wrong bit.
+                const sent = parseInt(msgBit);
+                const center = sent === 0 ? 0 : decResult.threshold;
+                const diff = Math.abs(decResult.raw - center);
+                const noise = Math.min(diff, q - diff);
+                const limit = Math.floor(q / 4);
+                return (
+                  <div className="mt-3 rounded-md border border-destructive/30 bg-destructive/5 p-3 space-y-1">
+                    <p className="text-xs font-semibold text-destructive">What went wrong</p>
+                    <p className="text-[11px] text-destructive/90 font-mono">
+                      |noise| = |raw − center| = |{decResult.raw} − {center}| ≈ {noise}
+                    </p>
+                    <p className="text-[11px] text-destructive/90 font-mono">
+                      q/4 threshold = {limit}
+                    </p>
+                    <p className="text-[11px] text-destructive/80">
+                      {noise} ≥ {limit} — the accumulated noise exceeded the safe margin,
+                      so the rounding landed in the wrong bit region. Try a larger q, a smaller
+                      n, or regenerate the key (noise is sampled fresh each time). In real LWE
+                      schemes, parameters are chosen so this happens with probability ≈ 2⁻¹³⁸.
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
             <div className="mt-2 pt-2 border-t">
               <p className="text-xs text-muted-foreground">

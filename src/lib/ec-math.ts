@@ -1,6 +1,8 @@
 // Elliptic Curve Math over F_p using BigInt
 // Curve: y² = x³ + Ax + B (mod p)
 
+import { isqrt } from './num-util';
+
 export interface ECPoint {
   x: bigint;
   y: bigint;
@@ -241,7 +243,7 @@ export function getPointOrder(P: ECPoint, A: bigint, _B: bigint, p: bigint): big
   if (isInfinity(P)) return 1n;
   let Q = { ...P };
   let order = 1n;
-  const limit = p + 1n + 2n * sqrt(p); // Hasse bound
+  const limit = p + 1n + 2n * isqrt(p); // Hasse bound
   while (order <= limit) {
     if (isInfinity(Q)) return order;
     Q = pointAdd(Q, P, A, p);
@@ -250,33 +252,8 @@ export function getPointOrder(P: ECPoint, A: bigint, _B: bigint, p: bigint): big
   return 0n; // shouldn't happen for valid curves
 }
 
-function sqrt(n: bigint): bigint {
-  if (n < 0n) throw new Error('sqrt of negative');
-  if (n === 0n) return 0n;
-  let x = n;
-  let y = (x + 1n) / 2n;
-  while (y < x) {
-    x = y;
-    y = (x + n / x) / 2n;
-  }
-  return x;
-}
-
-export function getAllPoints(A: bigint, B: bigint, p: bigint): ECPoint[] {
-  if (p > 10007n) throw new Error('Prime too large to enumerate all points (max 10007)');
-  const points: ECPoint[] = [];
-  for (let x = 0n; x < p; x++) {
-    const rhs = mod(x * x * x + A * x + B, p);
-    for (let y = 0n; y < p; y++) {
-      if (mod(y * y, p) === rhs) {
-        points.push({ x, y });
-      }
-    }
-  }
-  return points;
-}
-
-// Faster: use Euler criterion + Tonelli-Shanks
+// Enumerates all points on the curve using Euler criterion + Tonelli-Shanks.
+// O(p·log²p) — feasible for p up to ~10⁵ in the browser.
 export function getAllPointsFast(A: bigint, B: bigint, p: bigint): ECPoint[] {
   if (p > 100003n) throw new Error('Prime too large to enumerate (max ~100000)');
   const points: ECPoint[] = [];

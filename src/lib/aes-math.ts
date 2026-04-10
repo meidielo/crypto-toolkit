@@ -208,18 +208,25 @@ export function aesRound(state: State, roundKey: State): AESRoundResult {
 
 // ============= Full AES-128 ECB (10 rounds) =============
 
-// Memoize keyExpansion to avoid recomputing for the same key
+// LRU cache of key schedules (max 16 entries). Module-scoped so workers that
+// import this file get an isolated cache per worker — no cross-context leakage.
+//
+// LRU implementation relies on Map insertion-order iteration, which is
+// guaranteed by the ECMAScript spec (ES2015+): `Map.prototype.keys()` yields
+// entries in the order they were inserted, and re-inserting a key moves it to
+// the tail. We exploit that on every cache hit (delete + set) and evict from
+// the head (oldest) when at capacity.
 const keyExpansionCache = new Map<string, State[]>();
 function cachedKeyExpansion(keyBytes: number[]): State[] {
   const keyHex = keyBytes.map(b => b.toString(16).padStart(2, '0')).join('');
   const cached = keyExpansionCache.get(keyHex);
   if (cached) {
-    // LRU: move to end of Map iteration order
+    // Touch: move to tail (most-recently-used)
     keyExpansionCache.delete(keyHex);
     keyExpansionCache.set(keyHex, cached);
     return cached;
   }
-  // Evict oldest entry before inserting to maintain max 16
+  // Evict head (least-recently-used) before inserting to maintain max 16
   if (keyExpansionCache.size >= 16) {
     const oldestKey = keyExpansionCache.keys().next().value;
     if (oldestKey !== undefined) keyExpansionCache.delete(oldestKey);

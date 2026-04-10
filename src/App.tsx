@@ -155,31 +155,79 @@ const PAGE_TITLES: Record<Page, string> = {
   'constant-time': 'Constant-Time Comparison',
 };
 
-function useIsMobile() {
+// Tracks viewport width and invokes onMobile whenever the viewport transitions
+// into mobile range. Consolidating this into the hook avoids a setState-in-effect
+// in the consuming component (flagged by react-hooks/set-state-in-effect).
+function useIsMobile(onEnterMobile?: () => void) {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
+    const handler = () => {
+      const next = window.innerWidth < 768;
+      setIsMobile(prev => {
+        if (next && !prev) onEnterMobile?.();
+        return next;
+      });
+    };
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
-  }, []);
+  }, [onEnterMobile]);
   return isMobile;
 }
 
+// Set of valid page ids for safe hash → Page coercion.
+const VALID_PAGES = new Set(Object.keys({
+  home: 0, 'ec-calculator': 0, rsa: 0, modular: 0, converter: 0, factorization: 0,
+  ciphers: 0, ecdsa: 0, paillier: 0, elgamal: 0, 'rsa-attack': 0, substitution: 0,
+  'diffie-hellman': 0, aes: 0, 'nonce-reuse': 0, lwe: 0, schnorr: 0, 'aes-gcm': 0,
+  argon2: 0, tls13: 0, 'padding-oracle': 0, 'textbook-rsa': 0, 'hash-extension': 0,
+  shamir: 0, 'gcm-nonce': 0, hmac: 0, 'ecb-penguin': 0, 'dh-subgroup': 0, wiener: 0,
+  'curve-plot': 0, bleichenbacher: 0, coppersmith: 0, 'crt-fault': 0, birthday: 0,
+  'constant-time': 0,
+} satisfies Record<Page, number>));
+
+function pageFromHash(): Page {
+  const raw = window.location.hash.replace(/^#\/?/, '');
+  return (VALID_PAGES.has(raw) ? raw : 'home') as Page;
+}
+
 export default function App() {
-  const [page, setPage] = useState<Page>('home');
-  const isMobile = useIsMobile();
+  const [page, setPageState] = useState<Page>(() => pageFromHash());
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobile = useIsMobile(() => setSidebarOpen(false));
   const PageComponent = PAGE_COMPONENTS[page];
 
-  // Close sidebar when switching to mobile
+  // Keep URL hash in sync with page state (bookmarkable state)
+  const setPage = (next: Page) => {
+    const hash = next === 'home' ? '' : `#/${next}`;
+    if (window.location.hash !== hash) {
+      // Using replaceState here would flatten history; pushState preserves back/forward.
+      window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${hash}`);
+    }
+    setPageState(next);
+  };
+
+  // Browser back/forward updates state to match the hash
   useEffect(() => {
-    if (isMobile) setSidebarOpen(false);
-  }, [isMobile]);
+    const handler = () => setPageState(pageFromHash());
+    window.addEventListener('hashchange', handler);
+    window.addEventListener('popstate', handler);
+    return () => {
+      window.removeEventListener('hashchange', handler);
+      window.removeEventListener('popstate', handler);
+    };
+  }, []);
 
   return (
     <TooltipProvider>
+      {/* Skip link for keyboard users — visible only when focused */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-primary focus:text-primary-foreground focus:px-3 focus:py-2 focus:rounded-md focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
       <div className="flex h-screen overflow-hidden bg-background">
-        <main className="flex-1 overflow-auto min-w-0">
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto min-w-0">
           <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-background/80 backdrop-blur-sm px-4 md:px-6 py-3 gap-2">
             <button
               onClick={() => setPage('home')}
@@ -207,7 +255,7 @@ export default function App() {
           </header>
           <div className="p-4 md:p-6 max-w-6xl mx-auto">
             <SecurityBanner />
-            <ErrorBoundary>
+            <ErrorBoundary resetKey={page}>
               {page === 'home' ? (
                 <Home onNavigate={setPage} />
               ) : (

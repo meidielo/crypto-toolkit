@@ -167,6 +167,17 @@ export function RSACalculator() {
               <Button onClick={doGenerate} disabled={generating} className="w-full">
                 {generating ? 'Generating...' : 'Generate RSA Key Pair'}
               </Button>
+              <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-700 dark:text-amber-400 space-y-1">
+                <p className="font-semibold">Primality test caveat</p>
+                <p>
+                  Primes are selected with a Miller–Rabin test that is <strong>deterministic only for
+                  n &lt; 3.3 × 10²⁴</strong> (using fixed witnesses 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37).
+                  For larger n, the same fixed witness set is reused, which is <em>not</em> probabilistically
+                  secure against an adversary who can construct a composite specifically crafted to fool
+                  those witnesses. Production RSA implementations use random witnesses (≥40 rounds) or
+                  deterministic tests like AKS. Do not use these keys for anything real.
+                </p>
+              </div>
               {genError && <p className="text-sm text-destructive">{genError}</p>}
               {keys && <KeyDisplay k={keys} label="Generated Key Pair" />}
               {keys && (

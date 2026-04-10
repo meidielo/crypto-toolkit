@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-// Button removed - unused
 import { Badge } from '@/components/ui/badge';
 import { getAllPointsFast, PRESET_CURVES, discriminant, type ECPoint } from '@/lib/ec-math';
 import { isPrime } from '@/lib/crypto-math';
@@ -35,8 +34,6 @@ export function CurvePlot() {
 
   const pNum = Number(p || 0);
   const cellSize = pNum <= 30 ? 18 : pNum <= 60 ? 10 : pNum <= 100 ? 7 : 5;
-
-  // pointSet removed — not currently used
 
   return (
     <div className="space-y-4">
@@ -88,15 +85,18 @@ export function CurvePlot() {
                   <div className="absolute text-[8px] text-muted-foreground" style={{ left: (pNum - 1) * cellSize, top: pNum * cellSize + 4 }}>{pNum - 1}</div>
                   <div className="absolute text-[8px] text-muted-foreground" style={{ left: -14, top: 0 }}>{pNum - 1}</div>
 
-                  {/* Points */}
+                  {/* Points — rendered as buttons so they are keyboard-focusable
+                      and announce their coordinates to assistive tech. */}
                   {points.map((pt, i) => {
                     const x = Number(pt.x);
                     const y = Number(pt.y);
                     const isHighlighted = highlight && highlight.x === pt.x && highlight.y === pt.y;
+                    const label = `Point (${pt.x}, ${pt.y})`;
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={i}
-                        className={`absolute rounded-full cursor-pointer transition-all ${
+                        className={`absolute rounded-full cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                           isHighlighted ? 'bg-red-500 ring-2 ring-red-500/50 z-10' : 'bg-primary/70 hover:bg-primary'
                         }`}
                         style={{
@@ -106,6 +106,8 @@ export function CurvePlot() {
                           top: (pNum - 1 - y) * cellSize + 1,
                         }}
                         onClick={() => setHighlight(pt)}
+                        aria-label={label}
+                        aria-pressed={isHighlighted ? true : false}
                         title={`(${pt.x}, ${pt.y})`}
                       />
                     );

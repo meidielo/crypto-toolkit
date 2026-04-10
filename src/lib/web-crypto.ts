@@ -7,14 +7,18 @@ export async function webCryptoAESEncrypt(
   plaintext: Uint8Array,
   key: Uint8Array
 ): Promise<{ ciphertext: Uint8Array; mode: string }> {
-  // ECB mode isn't directly available in Web Crypto, use AES-CBC with zero IV
-  // to simulate single-block encryption (first block = ECB behavior)
+  // Web Crypto doesn't expose raw AES-ECB, so we simulate single-block ECB by
+  // running AES-CBC with a zero IV and taking the first block. The equivalence
+  // holds because for the first block:
+  //   AES-CBC(pt, key, 0^128) = AES-ECB(pt XOR 0^128, key) = AES-ECB(pt, key).
+  // NOTE: this only works for the FIRST 16 bytes — subsequent blocks chain on
+  // the previous ciphertext and diverge from true ECB. That's why we slice to
+  // 16 bytes on return.
   const keyBuf = key.buffer.slice(key.byteOffset, key.byteOffset + key.byteLength) as ArrayBuffer;
   const ptBuf = plaintext.buffer.slice(plaintext.byteOffset, plaintext.byteOffset + plaintext.byteLength) as ArrayBuffer;
   const cryptoKey = await crypto.subtle.importKey('raw', keyBuf, 'AES-CBC', false, ['encrypt']);
   const iv = new ArrayBuffer(16); // zero IV
   const result = await crypto.subtle.encrypt({ name: 'AES-CBC', iv }, cryptoKey, ptBuf);
-  // First 16 bytes = AES-ECB of the plaintext block
   return { ciphertext: new Uint8Array(result).slice(0, 16), mode: 'AES-CBC (zero IV, first block = ECB)' };
 }
 

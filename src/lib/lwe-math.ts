@@ -1,6 +1,8 @@
 // Learning With Errors (LWE) - Educational Post-Quantum Cryptography
 // Small-dimension implementation for tracing math by hand
 
+import { randMod } from './num-util';
+
 export interface LWEParams {
   n: number; // dimension
   q: number; // modulus
@@ -57,13 +59,6 @@ export function vecMatMul(r: number[], A: number[][], q: number): number[] {
     result[j] = mod(sum, q);
   }
   return result;
-}
-
-// Cryptographically secure random integer in [0, q)
-function randMod(q: number): number {
-  const arr = new Uint32Array(1);
-  crypto.getRandomValues(arr);
-  return arr[0] % q;
 }
 
 // Generate small error value from {-1, 0, 1}
@@ -126,7 +121,7 @@ export function lweDecrypt(
 ): { bit: number; raw: number; threshold: number } {
   // Compute v - u·s mod q
   const us = vecDot(ct.u, s, q);
-  let raw = mod(ct.v - us, q);
+  const raw = mod(ct.v - us, q);
 
   // Map to nearest: 0 or floor(q/2)
   const threshold = Math.floor(q / 2);

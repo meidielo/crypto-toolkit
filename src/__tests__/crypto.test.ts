@@ -35,8 +35,9 @@ describe('AES-128', () => {
   });
 
   it('round-trips random data', () => {
-    const randomPt = Array.from({ length: 16 }, () => Math.floor(Math.random() * 256));
-    const randomKey = Array.from({ length: 16 }, () => Math.floor(Math.random() * 256));
+    // CSPRNG per repo-wide ban on Math.random (see eslint config)
+    const randomPt = Array.from(crypto.getRandomValues(new Uint8Array(16)));
+    const randomKey = Array.from(crypto.getRandomValues(new Uint8Array(16)));
     const ct = aesECB(randomPt, randomKey);
     const dec = aesECBDecrypt(ct, randomKey);
     expect(dec).toEqual(randomPt);

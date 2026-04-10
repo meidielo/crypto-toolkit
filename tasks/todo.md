@@ -65,9 +65,108 @@
 - [x] ErrorBoundary wraps all pages
 
 ## Future
-- [ ] Bleichenbacher full iterative interval narrowing
 - [ ] Montgomery ladder + BSGS exposed in UI tabs
-- [ ] URL hash routing for bookmarkable state
 - [ ] Shamir multi-tab key ceremony
 - [ ] 2D lattice reduction (LLL) visualization
 - [ ] Meet-in-the-middle on 2DES
+
+## Phase 11: Audit Sweep ✅
+
+### Critical
+- [x] Move `shadcn` from dependencies → devDependencies (package-lock updated)
+- [x] Fix modulo bias in `randMod` — lwe-math.ts, ShamirSSS.tsx, SchnorrZKP.tsx (rejection sampling via `randModBig`)
+- [x] Batch CSPRNG calls (PaddingOracleAttack, BleichenbacherAttack → `randBytes(len)`)
+
+### High
+- [x] Delete dead `getAllPoints` from ec-math.ts
+- [x] Extract `isqrt` / `icbrt` / `randMod` / `randBytes` to `src/lib/num-util.ts` — wired into ec-math, RSAAttack, Coppersmith
+- [x] Remove unused `_d` state in CRTFaultAttack.tsx
+- [x] Attack-page tests: RSA roundtrip, CRT fault → gcd factorization, Paillier homomorphism, AES-CBC/PKCS#7 roundtrip, Carmichael primality, sqrtModP (+ num-util suite)
+- [x] Replace `Date.now()` entropy with CSPRNG session seed in BirthdayCollision.tsx
+- [x] Also fixed pre-existing `Math.random()` in CRTFaultAttack (bit-flip) — lint rule now clean on that file
+
+### Medium
+- [x] Hash-based routing (`#/ecdsa`, etc.) with fallback to Home; pushState + popstate listener; VALID_PAGES guard
+- [x] Persist sidebar category collapse state via localStorage (`crypto-toolkit:sidebar-collapsed`)
+- [x] Explicit HSTS (max-age=2y, preload) in `_headers` + `vercel.json`
+- [x] CSP `report-uri /csp-report` added — falls back to Vercel access logs if no endpoint exists (noted in review)
+- [x] Clarifying comments: millerRabin determinism bounds, webCryptoAESEncrypt zero-IV algebra proof, keyExpansionCache Map iteration order
+- [ ] `worker-src blob:` — investigation deferred; Argon2 WASM worker likely needs `blob:` for its wasm URL
+
+### Verification
+- [x] `npm run lint` — 4 pre-existing errors remain (3 shadcn UI files, 1 useDebouncedCompute), all unrelated to audit scope
+- [x] `npm run test` — 55 passed (was 20)
+- [x] `npm run build` — clean, main bundle unchanged at 217KB
+- [x] Review section + lessons capture
+
+## Review — Audit Sweep
+
+**Changed:** 16 files. New: `src/lib/num-util.ts`, `src/__tests__/num-util.test.ts`, `src/__tests__/attacks.test.ts`.
+
+**Correctness wins**
+- Unbiased sampling for Shamir coefficients + Schnorr challenge. Previously for `p=257` the bias was ~17% on some values — enough that the IT-security claim in the UI was false for the small default parameters. Now rejection-sampled.
+- CRT fault bit-flip was using `Math.random()` despite the repo-wide ban. Now uses `randMod(6)`.
+- One `randBytes(16)` call replaces 16 separate CSPRNG calls in Padding Oracle IV gen (16× fewer syscalls, and no longer confusing on a page that teaches secure crypto usage).
+
+**Code health**
+- Dead `getAllPoints` removed. Only the Tonelli-Shanks variant was ever called.
+- `isqrt` / `icbrt` / random helpers centralized — was duplicated 3–4 times with subtle differences.
+- `_d` zombie state in CRTFaultAttack removed; `setD` was called but value never read.
+
+**Test coverage**
+- Went from 20 → 55 tests. New suites exercise the *math primitives* the attack pages rely on, not the React components. CRT fault path is covered (gcd-reveals-factor), Paillier homomorphism is covered, Carmichael numbers 561 and 41041 are correctly rejected by Miller-Rabin, AES-CBC multi-block roundtrip matches FIPS 197.
+
+**Routing & UX**
+- Bookmarkable state: `ctool.mdpstudio.com.au/#/ecdsa` now works. Back/forward buttons navigate the page history. Unknown hashes fall back to Home.
+- Sidebar category collapse persists across reloads via localStorage.
+
+**Security headers**
+- HSTS added with 2-year max-age + preload directive.
+- CSP `report-uri /csp-report` added. No server endpoint exists — violation reports will return 404 in Vercel function logs, which is still observable but not structured. If the user wants structured reports, point this at a free service (report-uri.com) or a serverless function.
+- `worker-src blob:` kept as-is; hash-wasm's Argon2 loader likely requires it. Leaving investigation for a future pass.
+
+**Pre-existing lint issues not touched** (explicitly out of audit scope)
+1. `src/components/ui/{badge,button,tabs}.tsx` — shadcn-generated files co-export variants alongside components, flagged by `react-refresh/only-export-components`. Fix requires splitting each into `.variants.ts` + component file.
+2. `src/hooks/useDebouncedCompute.ts:32` — `setState` inside effect, flagged by `react-hooks/set-state-in-effect`. Requires restructuring the hook into a reducer or deriving `computing` from the timer ref. Left for a dedicated hooks cleanup pass.
+
+**Not done**
+- `worker-src blob:` hardening — requires checking hash-wasm's loader source.
+
+## Phase 12: Audit Sweep 2 ✅
+
+### Critical/Security
+- [x] #2 CSP `style-src 'unsafe-inline'` — documented as unavoidable (React runtime `style={}` props); comment in `_headers`
+- [x] #4 Miller-Rabin deterministic-witness warning — amber box below Generate in RSACalculator
+
+### High
+- [x] #5 ErrorBoundary: `componentDidCatch` logging, `componentDidUpdate` resetKey, `role="alert"`, `aria-live`
+- [x] #6 Worker argument validation — assertString/assertBigIntStr/assertPoint validators, message envelope check
+- [x] #7 Test coverage — 66 tests (was 55), new Bleichenbacher + parse suites
+- [x] #8 Bleichenbacher: real iterative narrowing (Steps 2a/2b/2c/3/4) in `src/lib/bleichenbacher.ts` (~170 LOC)
+
+### Medium
+- [x] #9 EC points table capped at 300 rows with "N more hidden" message
+- [x] #10 Sidebar auto-expands active page's category
+- [x] #11 Schnorr challenge range uses `q = ord(g)` not `p-1`; displays q in UI
+- [x] #12 Textbook RSA: explicit `2m < n` precondition error message
+- [x] #13 parseBigInt tolerates commas, underscores, whitespace; bare-minus handled
+- [x] #14 CurvePlot dead comments removed
+
+### Low
+- [x] #15 Accessibility: skip-to-content link, `aria-expanded`/`aria-label` on sidebar, `aria-pressed` on CurvePlot dots, `<main>` landmark
+- [x] #16 URL routing — already done in Sweep 1
+- [x] #17 Constant-Time demo: JIT/branch-predictor/GC caveat with `crypto.subtle.verify` recommendation
+- [x] #18 LWE decryption failure: shows noise value, threshold, and why it failed
+
+### Verification
+- [x] `npm run test` — 66 passed
+- [x] `npm run lint` — 5 pre-existing issues, zero new
+- [x] `npm run build` — clean, 219KB main bundle
+- [x] Preview: Bleichenbacher converges in 10,910 queries (2 iterations), "YES — plaintext fully recovered"
+
+### Bug found during verification
+- Default e=17 was not coprime to φ(n) for p=65521, q=65519 (17 | 65518). Changed default e to 11.
+
+**What would I do differently next time?**
+- Add `npm run lint` to CI (or a pre-commit hook) so `Math.random` regressions like the CRTFault one don't land silently after the rule is written.
+- Write tests against exported pure functions, not inlined component helpers. Several attack pages have critical math helpers declared at module scope inside `.tsx` files — if those were in `lib/` they'd already be tested.

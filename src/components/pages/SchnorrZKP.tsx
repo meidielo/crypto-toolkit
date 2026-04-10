@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { StepCard, ComputationRow, FormulaBox } from '@/components/StepCard';
 import { mod, modPow } from '@/lib/ec-math';
 import { isPrime } from '@/lib/crypto-math';
+import { randModBig } from '@/lib/num-util';
 
 
 type Phase = 'setup' | 'commit' | 'challenge' | 'respond' | 'verify';
@@ -19,6 +20,9 @@ export function SchnorrZKP() {
   const [gStr, setGStr] = useState('5');
   const [xStr, setXStr] = useState('7');
   const [yVal, setYVal] = useState<bigint | null>(null);
+  // Order of the subgroup ⟨g⟩. Schnorr operates over this subgroup, not Z_p*,
+  // so the challenge and response must be reduced mod q (not mod p-1).
+  const [qVal, setQVal] = useState<bigint | null>(null);
   const [setupError, setSetupError] = useState('');
 
   const [rStr, setRStr] = useState('11');
@@ -33,11 +37,29 @@ export function SchnorrZKP() {
   function doSetup() {
     setSetupError('');
     const p = parseBigInt(pStr), g = parseBigInt(gStr), x = parseBigInt(xStr);
-    if (!p || !g || !x) { setSetupError('Enter all parameters'); return; }
+    if (p === null || g === null || x === null) { setSetupError('Enter all parameters'); return; }
+    if (p < 3n) { setSetupError('p must be at least 3'); return; }
     if (!isPrime(p)) { setSetupError('p must be prime'); return; }
-    // Validate g generates a prime-order subgroup: g^(p-1) ≡ 1 mod p (Fermat)
-    if (modPow(g, p - 1n, p) !== 1n) { setSetupError('g^(p-1) mod p ≠ 1 — g is not a valid generator'); return; }
-    setYVal(modPow(g, x, p));
+    if (g <= 1n || g >= p) { setSetupError('g must satisfy 1 < g < p'); return; }
+    if (x <= 0n) { setSetupError('x must be positive'); return; }
+    // Fermat only says g^(p-1) ≡ 1 — true for every g coprime to p, so it does
+    // not prove g generates the full group. Compute the actual multiplicative
+    // order of g: the smallest q > 0 with g^q ≡ 1 mod p. Schnorr then operates
+    // in ⟨g⟩ (size q), and the challenge/response must be reduced mod q — not
+    // mod p-1 — otherwise the soundness/completeness arguments don't hold.
+    let q = 0n;
+    let acc = 1n;
+    const maxOrder = p; // order divides p-1 but we guard below anyway
+    for (let i = 1n; i <= maxOrder; i++) {
+      acc = (acc * g) % p;
+      if (acc === 1n) { q = i; break; }
+    }
+    if (q === 0n || q < 2n) {
+      setSetupError('g has trivial order — pick a different generator');
+      return;
+    }
+    setQVal(q);
+    setYVal(modPow(g, mod(x, q), p));
     setPhase('commit');
   }
 
@@ -49,19 +71,19 @@ export function SchnorrZKP() {
   }
 
   function doChallenge() {
-    const p = parseBigInt(pStr)!;
-    // Verifier picks random challenge
-    const arr = new Uint32Array(1);
-    crypto.getRandomValues(arr);
-    const c = mod(BigInt(arr[0]), p - 2n) + 1n;
+    if (qVal === null) return;
+    // Verifier picks random challenge in [1, q) where q = ord(g). Unbiased via rejection sampling.
+    const c = qVal > 2n ? randModBig(qVal - 1n) + 1n : 1n;
     setCVal(c);
     setPhase('respond');
   }
 
   function doRespond() {
-    const p = parseBigInt(pStr)!, x = parseBigInt(xStr)!, r = parseBigInt(rStr)!;
-    if (!cVal) return;
-    const s = mod(r + cVal * x, p - 1n);
+    const x = parseBigInt(xStr);
+    const r = parseBigInt(rStr);
+    if (x === null || r === null || cVal === null || qVal === null) return;
+    // Response reduced mod q (the group order), not mod p-1.
+    const s = mod(r + cVal * x, qVal);
     setSVal(s);
     setPhase('verify');
   }
@@ -89,14 +111,10 @@ export function SchnorrZKP() {
   const [cheatingMode, setCheatingMode] = useState(false);
 
   function doCheatingProof() {
-    // Cheater doesn't know x. They pick s randomly, then compute t = g^s * y^(-c) mod p
-    // This only works if they can predict c BEFORE committing t
-    const p = parseBigInt(pStr)!;
-    if (!yVal || !cVal) return;
-    // Cheater picks random s
-    const arr = new Uint32Array(1);
-    crypto.getRandomValues(arr);
-    const fakeS = mod(BigInt(arr[0]), p - 1n);
+    // Cheater doesn't know x. They pick s randomly in [0, q), then need t = g^s * y^(-c) mod p.
+    // This only works if they can predict c BEFORE committing t.
+    if (!yVal || !cVal || qVal === null) return;
+    const fakeS = randModBig(qVal);
     setSVal(fakeS);
     // The cheater committed t BEFORE seeing c. To pass verification,
     // t would need to equal g^s * y^(-c) mod p — but t was committed
@@ -137,7 +155,10 @@ export function SchnorrZKP() {
         {yVal !== null && (
           <FormulaBox>
             <ComputationRow label="y (public)" formula="g^x mod p" value={yVal.toString()} highlight />
-            <p className="text-xs text-muted-foreground mt-1">Verifier knows (p, g, y). Prover knows x. Goal: prove knowledge of x without revealing it.</p>
+            {qVal !== null && (
+              <ComputationRow label="q = ord(g)" formula="smallest q : g^q ≡ 1 mod p" value={qVal.toString()} />
+            )}
+            <p className="text-xs text-muted-foreground mt-1">Verifier knows (p, g, y). Prover knows x. Challenge and response are reduced mod q (the order of ⟨g⟩), not mod p-1.</p>
           </FormulaBox>
         )}
       </StepCard>
@@ -179,11 +200,11 @@ export function SchnorrZKP() {
                 Fake Response (without knowing x)
               </Button>
             ) : (
-              <Button onClick={doRespond} className="w-full" size="sm">Compute s = r + c·x mod (p-1)</Button>
+              <Button onClick={doRespond} className="w-full" size="sm">Compute s = r + c·x mod q</Button>
             )}
             {sVal !== null && (
               <FormulaBox>
-                <ComputationRow label="s" formula={`${rStr} + ${cVal}·${xStr} mod ${BigInt(parseBigInt(pStr)! - 1n)}`} value={sVal.toString()} highlight />
+                <ComputationRow label="s" formula={`${rStr} + ${cVal}·${xStr} mod ${qVal?.toString() ?? '?'}`} value={sVal.toString()} highlight />
                 <p className="text-xs text-muted-foreground">Prover sends s → Verifier</p>
               </FormulaBox>
             )}
@@ -232,10 +253,10 @@ export function SchnorrZKP() {
                     </p>
                     <div className="text-xs text-muted-foreground space-y-1">
                       <p><strong>Probability analysis:</strong></p>
-                      <p>Cheater succeeds with probability 1/(p-1) per round = 1/{(parseBigInt(pStr)! - 1n).toString()} ≈ {(1 / Number(parseBigInt(pStr)! - 1n) * 100).toFixed(2)}%</p>
-                      <p>After k rounds: (1/{(parseBigInt(pStr)! - 1n).toString()})^k</p>
-                      <p>For cryptographic security: use p ≈ 2^256, giving 1/2^256 per round — computationally impossible to cheat.</p>
-                      <p>This is why parameter size matters in ZKP — small p (like {pStr}) makes cheating feasible, large p makes it impossible.</p>
+                      <p>Cheater succeeds with probability 1/q per round = 1/{qVal?.toString() ?? '?'} ≈ {qVal ? (100 / Number(qVal)).toFixed(2) : '?'}% (q = ord(g))</p>
+                      <p>After k rounds: (1/{qVal?.toString() ?? '?'})^k</p>
+                      <p>For cryptographic security: use q ≈ 2^256, giving 1/2^256 per round — computationally impossible to cheat.</p>
+                      <p>This is why the subgroup order q matters in ZKP — small q makes cheating feasible, large q makes it impossible.</p>
                     </div>
                   </div>
                 )}
