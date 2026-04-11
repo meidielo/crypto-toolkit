@@ -14,6 +14,12 @@ export function isInfinity(P: ECPoint): boolean {
   return P.x === 0n && P.y === 0n;
 }
 
+/** Format an EC point as a human-readable string. */
+export function pointStr(P: ECPoint): string {
+  if (isInfinity(P)) return 'O (infinity)';
+  return `(${P.x}, ${P.y})`;
+}
+
 export function mod(a: bigint, p: bigint): bigint {
   return ((a % p) + p) % p;
 }

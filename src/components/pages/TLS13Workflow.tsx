@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usePhaseStatus } from '@/hooks/usePhaseStatus';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -133,14 +134,7 @@ export function TLS13Workflow() {
     setComputing(false);
   }
 
-  const phaseOrder: Phase[] = ['hello', 'keyexchange', 'derive', 'auth', 'appdata', 'done'];
-  const phaseIdx = phaseOrder.indexOf(phase);
-  function getStatus(p: Phase): 'pending' | 'active' | 'complete' {
-    const idx = phaseOrder.indexOf(p);
-    if (idx < phaseIdx) return 'complete';
-    if (idx === phaseIdx) return 'active';
-    return 'pending';
-  }
+  const getStatus = usePhaseStatus<Phase>(['hello', 'keyexchange', 'derive', 'auth', 'appdata', 'done'], phase);
 
   return (
     <div className="space-y-4">

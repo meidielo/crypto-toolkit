@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usePhaseStatus } from '@/hooks/usePhaseStatus';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -98,14 +99,7 @@ export function DHSubgroupAttack() {
     setPhase('result');
   }
 
-  const phaseOrder: Phase[] = ['setup', 'attack', 'result'];
-  const phaseIdx = phaseOrder.indexOf(phase);
-  function getStatus(ph: Phase): 'pending' | 'active' | 'complete' {
-    const idx = phaseOrder.indexOf(ph);
-    if (idx < phaseIdx) return 'complete';
-    if (idx === phaseIdx) return 'active';
-    return 'pending';
-  }
+  const getStatus = usePhaseStatus<Phase>(['setup', 'attack', 'result'], phase);
 
   return (
     <div className="space-y-4">

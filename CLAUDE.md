@@ -216,11 +216,14 @@ src/lib/
   web-crypto.ts    — crypto.subtle wrappers (ECDSA, ECDH, HKDF, AES-GCM, HMAC)
   parse.ts         — parseBigInt() with 2000-char guard — ALWAYS import from here, never redefine
 
+src/hooks/
+  useDebouncedValue.ts — 300ms debounce for input-triggered computation
+
 src/__tests__/
   crypto.test.ts   — Vitest test suite — add tests here for every algorithm
 
 src/workers/
-  crypto.worker.ts — General math offload worker
+  crypto.worker.ts — General math offload worker (RSA keygen, BigInt serialization)
   hash.worker.ts   — Argon2id WASM worker (loads once, reuses)
 
 public/_headers    — Netlify security headers

@@ -4,6 +4,7 @@
 // polynomials mod N; this demo implements the simplest case (identical messages).
 // File and route retain the "coppersmith" name for URL stability (#/coppersmith).
 import { useState } from 'react';
+import { usePhaseStatus } from '@/hooks/usePhaseStatus';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -62,14 +63,7 @@ export function CoppersmithAttack() {
     setPhase('attack');
   }
 
-  const phaseOrder: Phase[] = ['setup', 'encrypt', 'attack'];
-  const phaseIdx = phaseOrder.indexOf(phase);
-  function getStatus(p: Phase): 'pending' | 'active' | 'complete' {
-    const idx = phaseOrder.indexOf(p);
-    if (idx < phaseIdx) return 'complete';
-    if (idx === phaseIdx) return 'active';
-    return 'pending';
-  }
+  const getStatus = usePhaseStatus<Phase>(['setup', 'encrypt', 'attack'], phase);
 
   return (
     <div className="space-y-4">

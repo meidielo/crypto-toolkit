@@ -1,5 +1,6 @@
 import { parseBigInt } from '@/lib/parse';
 import { useState } from 'react';
+import { usePhaseStatus } from '@/hooks/usePhaseStatus';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -99,14 +100,7 @@ export function PaillierWorkflow() {
     setDecResult({ cLambda, lVal, m });
   }
 
-  const phaseOrder: Phase[] = ['keygen', 'encrypt', 'homomorphic', 'decrypt'];
-  const phaseIdx = phaseOrder.indexOf(phase);
-  function getStatus(p: Phase): 'pending' | 'active' | 'complete' {
-    const idx = phaseOrder.indexOf(p);
-    if (idx < phaseIdx) return 'complete';
-    if (idx === phaseIdx) return 'active';
-    return 'pending';
-  }
+  const getStatus = usePhaseStatus<Phase>(['keygen', 'encrypt', 'homomorphic', 'decrypt'], phase);
 
   return (
     <div className="space-y-4">

@@ -228,3 +228,46 @@
 - [x] `npm test` — 89 passed (was 88)
 - [x] `npm run lint` — 0 errors
 - [x] `npm run build` — clean, 220KB main bundle
+
+---
+
+## Phase 15: Audit Sweep 5
+
+### Critical
+- [x] **#1 Build deps misplaced** — moved `@tailwindcss/vite`, `tailwindcss`, `tw-animate-css` to `devDependencies`
+- [x] **#2 CSP `worker-src blob:`** — CLOSED. Investigated hash-wasm source: WASM is base64-embedded, decoded to Uint8Array, compiled via `WebAssembly.compile()`. No blob URLs created. `worker-src 'self'` is sufficient.
+
+### High
+- [x] **#3 `pointStr` duplication** — extracted to `ec-math.ts`, 3 component copies removed
+- [x] **#4 `usePhaseStatus` hook** — extracted to `src/hooks/usePhaseStatus.ts`, replaced in all 18 workflow components. Eliminated ~130 lines of duplicated logic.
+- [x] **#5 GHASH 32-bit limitation** — added 4-line comment explaining JS bitwise truncation, correct for inputs < 268MB
+- [x] **#6 Missing LWE + Shamir tests** — added 3 LWE tests (bit=0 roundtrip, bit=1 roundtrip, keygen b=As+e) and 2 Shamir tests (Lagrange reconstruction, t-1 insufficiency)
+
+### Medium
+- [x] **#7 CLAUDE.md stale architecture** — updated hooks section (removed deleted files, added useDebouncedValue)
+- [x] **#8 README.md stale architecture** — removed useCryptoWorker/useStepMachine, updated page count to 37
+- [x] **#9 `useDebouncedCompute.ts` → `useDebouncedValue.ts`** — renamed via git mv, updated import in SubstitutionAnalysis
+- [x] **#10 `generateRandomPrime` bias comment** — STALE. Already at function definition in crypto-math.ts (lines 218-223)
+- [x] **#11 Carmichael 15841 test** — added 5 Carmichael numbers (561, 1105, 1729, 15841, 41041)
+
+### Low
+- [x] **#12 `ci` script** — added `"ci": "tsc -b && npm run lint && vitest run"` to package.json
+
+### Bonus fix
+- [x] **lll.test.ts type import** — `Vec2` needed `type` keyword for `verbatimModuleSyntax` (was breaking `tsc -b` build)
+
+### Stale findings
+- **#10** `generateRandomPrime` bias — already documented at function definition since Phase 13
+
+### Deferred (acknowledged, not this phase)
+- Sidebar search (#12 in audit) — feature, not fix
+- vitest coverage config (#13) — nice to have
+- ConstantTimeDemo `crypto.subtle.verify` comparison (#16) — pedagogical enhancement
+- vercel.json/_headers sync script (#9 in audit) — CI enhancement
+- CoppersmithAttack internal naming (#10 in audit) — already documented with file comment
+
+### Verification
+- [x] `npm test` — 95 passed (was 89)
+- [x] `npm run lint` — 0 errors
+- [x] `npx tsc --noEmit` — 0 errors
+- [x] `npm run build` — clean, 220KB main bundle (67KB gzipped)

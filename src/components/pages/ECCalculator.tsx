@@ -17,7 +17,7 @@ import {
   babyGiantStep,
   getAllPointsFast,
   getPointOrder,
-  isInfinity,
+  pointStr,
   type ECPoint,
   type PointAdditionSteps,
   type ScalarMultiplyStep,
@@ -30,11 +30,6 @@ import { isPrime } from '@/lib/crypto-math';
 // cells and a per-row order computation) stalls the main thread. 300 is
 // enough to see the structure and still scroll, without freezing the page.
 const POINTS_TABLE_CAP = 300;
-
-function pointStr(P: ECPoint): string {
-  if (isInfinity(P)) return 'O (infinity)';
-  return `(${P.x}, ${P.y})`;
-}
 
 export function ECCalculator() {
   // Curve params

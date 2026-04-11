@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usePhaseStatus } from '@/hooks/usePhaseStatus';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -58,14 +59,7 @@ export function LWEWorkflow() {
     setDecResult(result);
   }
 
-  const phaseOrder: Phase[] = ['setup', 'keygen', 'encrypt', 'decrypt'];
-  const phaseIdx = phaseOrder.indexOf(phase);
-  function getStatus(p: Phase): 'pending' | 'active' | 'complete' {
-    const idx = phaseOrder.indexOf(p);
-    if (idx < phaseIdx) return 'complete';
-    if (idx === phaseIdx) return 'active';
-    return 'pending';
-  }
+  const getStatus = usePhaseStatus<Phase>(['setup', 'keygen', 'encrypt', 'decrypt'], phase);
 
   const q = parseInt(qStr) || 97;
 

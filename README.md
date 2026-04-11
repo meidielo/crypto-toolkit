@@ -88,11 +88,9 @@ src/
     parse.ts           # Shared BigInt parsing with 2000-char length guard
     utils.ts           # UI utility (cn)
   hooks/
-    useCryptoWorker.ts    # Web Worker with stale response guard (latestIdRef)
-    useDebouncedCompute.ts # 300ms debounce for input-triggered computation
-    useStepMachine.ts     # Deterministic FSM (ADVANCE/INVALIDATE/SET_INPUT)
+    useDebouncedValue.ts  # 300ms debounce for input-triggered computation
   workers/
-    crypto.worker.ts      # General math worker with BigInt serialization
+    crypto.worker.ts      # RSA keygen worker with BigInt serialization
     hash.worker.ts        # Dedicated Argon2id WASM worker (loads once, reuses)
   components/
     Sidebar.tsx           # Right-side collapsible nav with category toggles
@@ -100,9 +98,9 @@ src/
     SecurityBanner.tsx    # Collapsible timing attack warning
     StepCard.tsx          # Step-by-step workflow card
     ShiftRowsAnimation.tsx # CSS transform animation for AES ShiftRows
-    pages/                # 35 lazy-loaded page components
+    pages/                # 37 lazy-loaded page components
   __tests__/
-    crypto.test.ts        # AES, SHA-256, EC math, number theory test vectors
+    crypto.test.ts        # AES, SHA-256, EC math, number theory, LWE test vectors
 ```
 
 ## Security Headers (Deployment)

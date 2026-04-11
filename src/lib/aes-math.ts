@@ -471,6 +471,10 @@ export function ghash(
   const ctBlocks = ciphertext.length > 0 ? padBlock(ciphertext) : [];
 
   // Length block: 64-bit AAD length || 64-bit CT length (in bits)
+  // LIMITATION: JS bitwise ops truncate to 32-bit signed int, so this is only
+  // correct for inputs up to ~268 MB (2^28 bytes → 2^31 bits). GCM spec allows
+  // up to 2^39−256 bytes of AAD; a conformant implementation would use BigInt
+  // for the bit-length encoding. Acceptable for this educational tool.
   const lenBlock = new Array(16).fill(0);
   const aadBitLen = aad.length * 8;
   const ctBitLen = ciphertext.length * 8;

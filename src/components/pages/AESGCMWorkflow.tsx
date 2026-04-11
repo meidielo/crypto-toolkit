@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usePhaseStatus } from '@/hooks/usePhaseStatus';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,19 +35,11 @@ export function AESGCMWorkflow() {
     } catch (e) { setError(String(e)); }
   }
 
-  function advance() {
-    const order: Phase[] = ['input', 'ctr', 'ghash', 'tag'];
-    const idx = order.indexOf(phase);
-    if (idx < order.length - 1) setPhase(order[idx + 1]);
-  }
-
   const phaseOrder: Phase[] = ['input', 'ctr', 'ghash', 'tag'];
-  const phaseIdx = phaseOrder.indexOf(phase);
-  function getStatus(p: Phase): 'pending' | 'active' | 'complete' {
-    const idx = phaseOrder.indexOf(p);
-    if (idx < phaseIdx) return 'complete';
-    if (idx === phaseIdx) return 'active';
-    return 'pending';
+  const getStatus = usePhaseStatus<Phase>(phaseOrder, phase);
+  function advance() {
+    const idx = phaseOrder.indexOf(phase);
+    if (idx < phaseOrder.length - 1) setPhase(phaseOrder[idx + 1]);
   }
 
   return (

@@ -4,6 +4,7 @@ import { SHA256 } from '../lib/sha256';
 import { hmacSHA256 } from '../lib/web-crypto';
 import { mod, modPow, modInverse, scalarMultiply, pointAdd, isInfinity, tonelliShanks, type ECPoint } from '../lib/ec-math';
 import { isPrime, gcd, eulerTotient, factorize, pollardRho, factorizeFast } from '../lib/crypto-math';
+import { generateLWEKeys, lweEncrypt, lweDecrypt, matVecMul } from '../lib/lwe-math';
 
 // ============= AES-128 FIPS 197 Appendix B =============
 
@@ -175,6 +176,16 @@ describe('Number Theory', () => {
     expect(isPrime(1n)).toBe(false);
   });
 
+  it('isPrime rejects Carmichael numbers (pseudoprimes)', () => {
+    // Carmichael numbers pass Fermat primality test but are composite.
+    // Miller-Rabin must reject all of these.
+    expect(isPrime(561n)).toBe(false);    // 3 × 11 × 17
+    expect(isPrime(1105n)).toBe(false);   // 5 × 13 × 17
+    expect(isPrime(1729n)).toBe(false);   // 7 × 13 × 19 (Hardy–Ramanujan)
+    expect(isPrime(15841n)).toBe(false);  // 7 × 31 × 73
+    expect(isPrime(41041n)).toBe(false);  // 7 × 11 × 13 × 41
+  });
+
   it('gcd(240, 46) = 2', () => {
     expect(gcd(240n, 46n)).toBe(2n);
   });
@@ -284,5 +295,89 @@ describe('HMAC-SHA256', () => {
     const mac = await hmacSHA256(key, data);
     const hex = Array.from(mac).map(b => b.toString(16).padStart(2, '0')).join('');
     expect(hex).toBe('5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843');
+  });
+});
+
+// ============= LWE Encrypt/Decrypt Roundtrip =============
+
+describe('LWE', () => {
+  it('encrypts and decrypts bit=0 correctly', () => {
+    const q = 257;
+    const keys = generateLWEKeys(4, q);
+    const { ct } = lweEncrypt(keys.A, keys.b, 0, q);
+    const result = lweDecrypt(ct, keys.s, q);
+    expect(result.bit).toBe(0);
+  });
+
+  it('encrypts and decrypts bit=1 correctly', () => {
+    const q = 257;
+    const keys = generateLWEKeys(4, q);
+    const { ct } = lweEncrypt(keys.A, keys.b, 1, q);
+    const result = lweDecrypt(ct, keys.s, q);
+    expect(result.bit).toBe(1);
+  });
+
+  it('keygen produces b = A*s + e mod q', () => {
+    const q = 257;
+    const keys = generateLWEKeys(4, q);
+    const As = matVecMul(keys.A, keys.s, q);
+    for (let i = 0; i < keys.b.length; i++) {
+      expect(keys.b[i]).toBe(((As[i] + keys.e[i]) % q + q) % q);
+    }
+  });
+});
+
+// ============= Shamir Secret Sharing (Lagrange Interpolation) =============
+
+describe('Shamir SSS', () => {
+  // Test Lagrange interpolation with known polynomial f(x) = 42 + 3x + 7x² mod 257
+  // Shares: f(1)=52, f(2)=76, f(3)=114, f(4)=166, f(5)=232
+  it('reconstructs secret from t=3 shares of known polynomial', () => {
+    const p = 257n;
+    const shares = [
+      { x: 1n, y: mod(42n + 3n * 1n + 7n * 1n, p) },       // f(1) = 52
+      { x: 2n, y: mod(42n + 3n * 2n + 7n * 4n, p) },       // f(2) = 76
+      { x: 3n, y: mod(42n + 3n * 3n + 7n * 9n, p) },       // f(3) = 114
+    ];
+
+    // Lagrange interpolation at x=0 should recover secret=42
+    let secret = 0n;
+    for (let i = 0; i < shares.length; i++) {
+      let num = 1n, den = 1n;
+      for (let j = 0; j < shares.length; j++) {
+        if (i === j) continue;
+        num = mod(num * (0n - shares[j].x), p);
+        den = mod(den * (shares[i].x - shares[j].x), p);
+      }
+      const lagrange = mod(num * modInverse(den, p), p);
+      secret = mod(secret + shares[i].y * lagrange, p);
+    }
+    expect(secret).toBe(42n);
+  });
+
+  it('fails to reconstruct with t-1 shares (underdetermined)', () => {
+    const p = 257n;
+    // Degree-2 polynomial: need 3 shares. With only 2, interpolation gives
+    // a degree-1 polynomial that passes through both points — but its y-intercept
+    // is generally NOT the original secret.
+    const shares2 = [
+      { x: 1n, y: 52n },   // f(1)
+      { x: 2n, y: 76n },   // f(2)
+    ];
+
+    // Lagrange with 2 points of a degree-2 poly
+    let result = 0n;
+    for (let i = 0; i < shares2.length; i++) {
+      let num = 1n, den = 1n;
+      for (let j = 0; j < shares2.length; j++) {
+        if (i === j) continue;
+        num = mod(num * (0n - shares2[j].x), p);
+        den = mod(den * (shares2[i].x - shares2[j].x), p);
+      }
+      const lagrange = mod(num * modInverse(den, p), p);
+      result = mod(result + shares2[i].y * lagrange, p);
+    }
+    // With only 2 of 3 required shares, we DON'T recover 42
+    expect(result).not.toBe(42n);
   });
 });

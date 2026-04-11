@@ -1,5 +1,6 @@
 import { parseBigInt } from '@/lib/parse';
 import { useState } from 'react';
+import { usePhaseStatus } from '@/hooks/usePhaseStatus';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -122,14 +123,7 @@ export function SchnorrZKP() {
     setPhase('verify');
   }
 
-  const phaseOrder: Phase[] = ['setup', 'commit', 'challenge', 'respond', 'verify'];
-  const phaseIdx = phaseOrder.indexOf(phase);
-  function getStatus(ph: Phase): 'pending' | 'active' | 'complete' {
-    const idx = phaseOrder.indexOf(ph);
-    if (idx < phaseIdx) return 'complete';
-    if (idx === phaseIdx) return 'active';
-    return 'pending';
-  }
+  const getStatus = usePhaseStatus<Phase>(['setup', 'commit', 'challenge', 'respond', 'verify'], phase);
 
   return (
     <div className="space-y-4">

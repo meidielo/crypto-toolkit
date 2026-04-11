@@ -1,5 +1,6 @@
 import { parseBigInt } from '@/lib/parse';
 import { useState } from 'react';
+import { usePhaseStatus } from '@/hooks/usePhaseStatus';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { InlineWarning } from '@/components/SecurityBanner';
 import { WebCryptoVerify } from '@/components/WebCryptoVerify';
@@ -17,15 +18,10 @@ import {
   isOnCurve,
   isInfinity,
   modInverse,
+  pointStr,
   type ECPoint,
 } from '@/lib/ec-math';
 import { isPrime } from '@/lib/crypto-math';
-
-
-function pointStr(P: ECPoint): string {
-  if (isInfinity(P)) return 'O (infinity)';
-  return `(${P.x}, ${P.y})`;
-}
 
 type Phase = 'setup' | 'hash' | 'sign' | 'verify';
 
@@ -153,15 +149,7 @@ export function ECDSAWorkflow() {
     }
   }
 
-  const phaseOrder: Phase[] = ['setup', 'hash', 'sign', 'verify'];
-  const phaseIdx = phaseOrder.indexOf(phase);
-
-  function getStatus(p: Phase): 'pending' | 'active' | 'complete' {
-    const idx = phaseOrder.indexOf(p);
-    if (idx < phaseIdx) return 'complete';
-    if (idx === phaseIdx) return 'active';
-    return 'pending';
-  }
+  const getStatus = usePhaseStatus<Phase>(['setup', 'hash', 'sign', 'verify'], phase);
 
   return (
     <div className="space-y-4">

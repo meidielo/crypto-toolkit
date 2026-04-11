@@ -108,3 +108,20 @@ Birthday Collision was doing 16M synchronous SHA-256 iterations, freezing the br
 
 ### Route/file naming: keep URLs stable even when terminology evolves
 CoppersmithAttack.tsx implements Hastad's Broadcast Attack but the route is `#/coppersmith`. Renaming the route would break bookmarks. Solution: document the naming rationale in a file-level comment, keep the URL.
+
+## 2026-04-11 - Audit Sweep 5 (Phase 15)
+
+### Build-time deps in `dependencies` inflates declared production surface
+`@tailwindcss/vite`, `tailwindcss`, `tw-animate-css` were in `dependencies` instead of `devDependencies`. Doesn't affect the static deploy (everything gets bundled), but semantically wrong and matters for `npm ci --omit=dev` or any future packaging.
+
+### hash-wasm embeds WASM as base64 — no blob URLs needed
+Investigated the source: WASM binaries are base64-encoded strings compiled via `WebAssembly.compile(asm)` from a `Uint8Array`. No `URL.createObjectURL` or blob workers. `worker-src 'self'` is sufficient in the CSP.
+
+### 17 copies of the same 7-line pattern = a refactor waiting to happen
+Every workflow page had identical `phaseOrder`/`phaseIdx`/`getStatus` code. Extracted to `usePhaseStatus<T>(phases, current)` hook. One source of truth, ~130 lines removed. The pattern was stable for months because it was simple — but simple × 17 still becomes a maintenance liability.
+
+### File names should match their primary export
+`useDebouncedCompute.ts` exported `useDebouncedValue`. Anyone doing `import from '@/hooks/useDebounced...'` with autocomplete will look for the wrong file. Rename to match.
+
+### `verbatimModuleSyntax` requires `type` keyword on type-only imports
+`import { Vec2 } from ...` fails `tsc -b` if `Vec2` is a type. Must use `import { type Vec2 }`. This only surfaces in the build pipeline (`tsc -b`), not in `tsc --noEmit` which is more lenient.

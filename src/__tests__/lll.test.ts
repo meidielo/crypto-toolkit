@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { lll2D, Vec2 } from '../lib/lll-math';
+import { lll2D, type Vec2 } from '../lib/lll-math';
 
 function det(b1: Vec2, b2: Vec2): number {
   return Math.abs(b1.x * b2.y - b1.y * b2.x);
