@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { factorize, factorizeToString, isPrime, nextPrime, eulerTotient } from '@/lib/crypto-math';
+import { factorizeFast, factorizeToString, isPrime, nextPrime, eulerTotient } from '@/lib/crypto-math';
 
 
 export function Factorization() {
@@ -34,14 +34,14 @@ export function Factorization() {
       setError('Enter an integer >= 2');
       return;
     }
-    if (n > 10n ** 18n) {
-      setError('Number too large (max 10^18 for trial division)');
+    if (n > 10n ** 30n) {
+      setError('Number too large (max 10^30)');
       return;
     }
     setComputing(true);
     setTimeout(() => {
       try {
-        const factors = factorize(n);
+        const factors = factorizeFast(n);
         const factorString = factorizeToString(n);
         const prime = isPrime(n);
         const totient = eulerTotient(n);

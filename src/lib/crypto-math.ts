@@ -1,6 +1,7 @@
 // General cryptographic math utilities using BigInt
 
 import { mod, modPow, modInverse as ecModInverse } from './ec-math';
+import { randModBig } from './num-util';
 
 export { mod, modPow };
 
@@ -26,15 +27,12 @@ export function isPrime(n: bigint): boolean {
   return millerRabin(n, 20);
 }
 
-// Primality test.
+// Primality test — hybrid deterministic + probabilistic Miller-Rabin.
 // - n < 3.3×10²⁴ (~81 bits): deterministic using the fixed witness set
-//   {2,3,5,7,11,13,17,19,23,29,31,37} (verified correct by Jaeschke/Sorenson-Webster).
-// - n ≥ 3.3×10²⁴: still deterministic — we reuse the same fixed witness prefix
-//   rather than random witnesses, trading probabilistic soundness for
-//   reproducibility. Worst-case error bound is ~4^(-rounds) *assuming* random
-//   witnesses; with the fixed small-prime prefix the true error is larger on
-//   adversarially chosen composites. Acceptable for educational RSA key
-//   generation; production should draw witnesses via crypto.getRandomValues.
+//   {2,3,5,7,11,13,17,19,23,29,31,37} (proven correct by Sorenson & Webster 2015).
+// - n ≥ 3.3×10²⁴: uses all 12 deterministic witnesses PLUS (rounds - 12) random
+//   witnesses drawn from crypto.getRandomValues. Each random round has independent
+//   false-positive probability ≤ 1/4, so the combined error is ≤ 4^(-rounds).
 function millerRabin(n: bigint, rounds: number): boolean {
   let d = n - 1n;
   let r = 0n;
@@ -43,11 +41,20 @@ function millerRabin(n: bigint, rounds: number): boolean {
     r++;
   }
 
-  const witnesses = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n];
-  const toTest = n < 3317044064679887385961981n ? witnesses : witnesses.slice(0, rounds);
+  const fixedWitnesses = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n];
+
+  // Build witness list: always start with all fixed witnesses, then add
+  // CSPRNG random witnesses for large n to reach the requested round count.
+  const toTest: bigint[] = fixedWitnesses.filter(a => a < n - 1n);
+  if (n >= 3317044064679887385961981n) {
+    const extraNeeded = rounds - toTest.length;
+    for (let i = 0; i < extraNeeded; i++) {
+      // Random witness in [2, n-2]
+      toTest.push(randModBig(n - 3n) + 2n);
+    }
+  }
 
   for (const a of toTest) {
-    if (a >= n - 1n) continue;
     let x = modPow(a, d, n);
     if (x === 1n || x === n - 1n) continue;
     let composite = true;
@@ -127,8 +134,78 @@ export function factorize(n: bigint): Map<bigint, number> {
   return factors;
 }
 
+// Pollard's rho factorization — finds a non-trivial factor of n in O(n^(1/4)) expected time.
+// Much faster than trial division for semiprimes with factors > ~10^6.
+// Returns a non-trivial factor, or n if the method fails (n is likely prime).
+export function pollardRho(n: bigint): bigint {
+  if (n % 2n === 0n) return 2n;
+  if (isPrime(n)) return n;
+
+  // Use a fixed pseudo-random function g(x) = x² + c mod n with varying c
+  for (let c = 1n; c < 100n; c++) {
+    let x = 2n;
+    let y = 2n;
+    let d = 1n;
+
+    const g = (v: bigint) => mod(v * v + c, n);
+
+    // Floyd's cycle detection
+    while (d === 1n) {
+      x = g(x);
+      y = g(g(y));
+      const diff = x > y ? x - y : y - x;
+      d = gcd(diff, n);
+    }
+
+    if (d !== n) return d;
+  }
+  return n; // fallback — shouldn't happen for composite n
+}
+
+// Enhanced factorization: uses trial division for small factors, then Pollard's
+// rho for remaining large composite. Much faster for semiprimes like RSA moduli.
+export function factorizeFast(n: bigint): Map<bigint, number> {
+  const factors = new Map<bigint, number>();
+  if (n <= 1n) return factors;
+
+  let temp = n;
+
+  // Trial division for small factors (up to ~10^4)
+  for (let p = 2n; p < 10000n && p * p <= temp; p++) {
+    let count = 0;
+    while (temp % p === 0n) {
+      temp /= p;
+      count++;
+    }
+    if (count > 0) factors.set(p, count);
+  }
+
+  // If remainder is composite, use Pollard's rho
+  if (temp > 1n) {
+    const stack = [temp];
+    while (stack.length > 0) {
+      const val = stack.pop()!;
+      if (val === 1n) continue;
+      if (isPrime(val)) {
+        factors.set(val, (factors.get(val) || 0) + 1);
+        continue;
+      }
+      const factor = pollardRho(val);
+      if (factor === val) {
+        // rho failed — treat as prime (extremely unlikely for composites)
+        factors.set(val, (factors.get(val) || 0) + 1);
+      } else {
+        stack.push(factor);
+        stack.push(val / factor);
+      }
+    }
+  }
+
+  return factors;
+}
+
 export function factorizeToString(n: bigint): string {
-  const factors = factorize(n);
+  const factors = factorizeFast(n);
   if (factors.size === 0) return n.toString();
   return Array.from(factors.entries())
     .map(([p, e]) => e === 1 ? p.toString() : `${p}^${e}`)

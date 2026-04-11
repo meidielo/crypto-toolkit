@@ -385,13 +385,14 @@ export interface CTRBlockDetail {
 export function aesCTR(
   plaintext: number[],
   keyBytes: number[],
-  iv: number[] // 12 bytes
+  iv: number[], // 12 bytes
+  startCounter = 1 // GCM uses 2 (J0+1); standalone CTR uses 1
 ): { ciphertext: number[]; blocks: CTRBlockDetail[] } {
   const blocks: CTRBlockDetail[] = [];
   const ciphertext: number[] = [];
 
-  // Initial counter: IV (12 bytes) || 0x00000001
-  let counter = [...iv, 0, 0, 0, 1];
+  // Initial counter: IV (12 bytes) || startCounter (4 bytes big-endian)
+  let counter = [...iv, 0, 0, 0, startCounter];
 
   for (let i = 0; i < plaintext.length; i += 16) {
     const encryptedCounter = aesECB(counter, keyBytes);
@@ -533,8 +534,8 @@ export function aesGCM(
   // J0 = IV || 0x00000001
   const J0 = [...iv, 0, 0, 0, 1];
 
-  // CTR encrypt (starts from J0 + 1)
-  const { ciphertext, blocks: ctrBlocks } = aesCTR(plaintext, keyBytes, iv);
+  // CTR encrypt starts from J0 + 1 (counter=2); J0 (counter=1) is reserved for tag
+  const { ciphertext, blocks: ctrBlocks } = aesCTR(plaintext, keyBytes, iv, 2);
 
   // GHASH for authentication tag
   const { tag: ghashTag, steps: ghashSteps } = ghash(H, aad, ciphertext);

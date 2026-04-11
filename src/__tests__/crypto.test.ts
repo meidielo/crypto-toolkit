@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { aesECB, aesECBDecrypt, hexToBytesAES, bytesToHexAES } from '../lib/aes-math';
+import { aesECB, aesECBDecrypt, aesGCM, hexToBytesAES, bytesToHexAES } from '../lib/aes-math';
 import { SHA256 } from '../lib/sha256';
+import { hmacSHA256 } from '../lib/web-crypto';
 import { mod, modPow, modInverse, scalarMultiply, pointAdd, isInfinity, tonelliShanks, type ECPoint } from '../lib/ec-math';
-import { isPrime, gcd, eulerTotient, factorize } from '../lib/crypto-math';
+import { isPrime, gcd, eulerTotient, factorize, pollardRho, factorizeFast } from '../lib/crypto-math';
 
 // ============= AES-128 FIPS 197 Appendix B =============
 
@@ -26,12 +27,17 @@ describe('AES-128', () => {
     expect(bytesToHexAES(dec)).toBe(bytesToHexAES(pt));
   });
 
-  it('round-trips with second test vector', () => {
+  // FIPS 197 Appendix B — second key/pt/ct triple (independent decrypt validation)
+  it('encrypts FIPS 197 second test vector', () => {
     const k2 = hexToBytesAES('000102030405060708090a0b0c0d0e0f');
     const p2 = hexToBytesAES('00112233445566778899aabbccddeeff');
-    const c2 = aesECB(p2, k2);
-    const d2 = aesECBDecrypt(c2, k2);
-    expect(bytesToHexAES(d2)).toBe(bytesToHexAES(p2));
+    expect(bytesToHexAES(aesECB(p2, k2))).toBe('69c4e0d86a7b0430d8cdb78070b4c55a');
+  });
+
+  it('decrypts FIPS 197 second test vector independently', () => {
+    const k2 = hexToBytesAES('000102030405060708090a0b0c0d0e0f');
+    const ct2 = hexToBytesAES('69c4e0d86a7b0430d8cdb78070b4c55a');
+    expect(bytesToHexAES(aesECBDecrypt(ct2, k2))).toBe('00112233445566778899aabbccddeeff');
   });
 
   it('round-trips random data', () => {
@@ -167,5 +173,101 @@ describe('Number Theory', () => {
     expect(f.get(2n)).toBe(3);
     expect(f.get(3n)).toBe(2);
     expect(f.get(5n)).toBe(1);
+  });
+
+  it('pollardRho finds a factor of a semiprime', () => {
+    // 15-digit semiprime: 104729 × 104743 = 10967652047n
+    const n = 104729n * 104743n;
+    const factor = pollardRho(n);
+    expect(factor).not.toBe(1n);
+    expect(factor).not.toBe(n);
+    expect(n % factor).toBe(0n);
+  });
+
+  it('factorizeFast handles large semiprimes beyond trial division', () => {
+    // Two 8-digit primes — trial division alone would need 10^8 iterations
+    const p = 10000019n;
+    const q = 10000079n;
+    const n = p * q; // ~10^14
+    const f = factorizeFast(n);
+    expect(f.size).toBe(2);
+    expect(f.has(p)).toBe(true);
+    expect(f.has(q)).toBe(true);
+  });
+});
+
+// ============= AES-GCM NIST SP 800-38D =============
+
+describe('AES-GCM', () => {
+  // NIST SP 800-38D Test Case 3: 128-bit key, 96-bit IV, 128-bit plaintext, no AAD
+  // Key:  feffe9928665731c6d6a8f9467308308
+  // IV:   cafebabefacedbaddecaf888
+  // PT:   d9313225f88406e5a55909c5aff5269a
+  //       86a7a9531534f7da2e4c303d8a318a72
+  //       1c3c0c95956809532fcf0e2449a6b525
+  //       b16aedf5aa0de657ba637b391aafd255
+  // CT:   42831ec2217774244b7221b784d0d49c
+  //       e3aa212f2c02a4e035c17e2329aca12e
+  //       21d514b25466931c7d8f6a5aac84aa05
+  //       1ba30b396a0aac973d58e091473f5985
+  // Tag:  4d5c2af327cd64a62cf35abd2ba6fab4
+  it('matches NIST SP 800-38D Test Case 3', () => {
+    const key = hexToBytesAES('feffe9928665731c6d6a8f9467308308');
+    const iv = hexToBytesAES('cafebabefacedbaddecaf888');
+    const pt = hexToBytesAES(
+      'd9313225f88406e5a55909c5aff5269a' +
+      '86a7a9531534f7da2e4c303d8a318a72' +
+      '1c3c0c95956809532fcf0e2449a6b525' +
+      'b16aedf5aa0de657ba637b391aafd255'
+    );
+    const expectedCt =
+      '42831ec2217774244b7221b784d0d49c' +
+      'e3aa212f2c02a4e035c17e2329aca12e' +
+      '21d514b25466931c7d8f6a5aac84aa05' +
+      '1ba30b396a0aac973d58e091473f5985';
+    const expectedTag = '4d5c2af327cd64a62cf35abd2ba6fab4';
+
+    const result = aesGCM(pt, key, iv, []);
+    expect(bytesToHexAES(result.ciphertext)).toBe(expectedCt);
+    expect(bytesToHexAES(result.tag)).toBe(expectedTag);
+  });
+
+  // NIST SP 800-38D Test Case 2: 128-bit key, empty plaintext, no AAD
+  // (verifies tag-only mode)
+  it('matches NIST SP 800-38D Test Case 2 (empty plaintext)', () => {
+    const key = hexToBytesAES('00000000000000000000000000000000');
+    const iv = hexToBytesAES('000000000000000000000000');
+    const result = aesGCM([], key, iv, []);
+    expect(result.ciphertext).toEqual([]);
+    expect(bytesToHexAES(result.tag)).toBe('58e2fccefa7e3061367f1d57a4e7455a');
+  });
+});
+
+// ============= HMAC-SHA256 RFC 4231 =============
+
+describe('HMAC-SHA256', () => {
+  // RFC 4231 Test Case 1
+  // Key:   0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b (20 bytes)
+  // Data:  4869205468657265 ("Hi There")
+  // HMAC:  b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7
+  it('RFC 4231 Test Case 1', async () => {
+    const key = new Uint8Array(hexToBytesAES('0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b'));
+    const data = new TextEncoder().encode('Hi There');
+    const mac = await hmacSHA256(key, data);
+    const hex = Array.from(mac).map(b => b.toString(16).padStart(2, '0')).join('');
+    expect(hex).toBe('b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7');
+  });
+
+  // RFC 4231 Test Case 2
+  // Key:   4a656665 ("Jefe")
+  // Data:  7768617420646f2079612077616e7420666f72206e6f7468696e673f
+  //        ("what do ya want for nothing?")
+  // HMAC:  5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843
+  it('RFC 4231 Test Case 2', async () => {
+    const key = new TextEncoder().encode('Jefe');
+    const data = new TextEncoder().encode('what do ya want for nothing?');
+    const mac = await hmacSHA256(key, data);
+    const hex = Array.from(mac).map(b => b.toString(16).padStart(2, '0')).join('');
+    expect(hex).toBe('5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843');
   });
 });

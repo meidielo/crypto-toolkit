@@ -1,5 +1,5 @@
 import { parseBigInt } from '@/lib/parse';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { WebCryptoVerify } from '@/components/WebCryptoVerify';
 import { webCryptoRSAEncryptDecrypt, bytesToHex } from '@/lib/web-crypto';
 import {
-  generateRSAKeys,
   rsaEncrypt,
   rsaDecrypt,
   isPrime,
@@ -18,6 +17,42 @@ import {
   mod,
   type RSAKeyPair,
 } from '@/lib/crypto-math';
+import CryptoWorker from '@/workers/crypto.worker?worker';
+
+// Singleton worker instance, created lazily
+let workerInstance: Worker | null = null;
+let workerIdCounter = 0;
+const pendingCallbacks = new Map<number, { resolve: (k: RSAKeyPair) => void; reject: (e: Error) => void }>();
+
+function getWorker(): Worker {
+  if (!workerInstance) {
+    workerInstance = new CryptoWorker();
+    workerInstance.onmessage = (ev) => {
+      const { id, result, error } = ev.data;
+      const cb = pendingCallbacks.get(id);
+      if (!cb) return;
+      pendingCallbacks.delete(id);
+      if (error) {
+        cb.reject(new Error(error));
+      } else {
+        cb.resolve({
+          p: BigInt(result.p), q: BigInt(result.q), n: BigInt(result.n),
+          e: BigInt(result.e), d: BigInt(result.d), phi: BigInt(result.phi),
+          dp: BigInt(result.dp), dq: BigInt(result.dq), qinv: BigInt(result.qinv),
+        });
+      }
+    };
+  }
+  return workerInstance;
+}
+
+function rsaKeygenAsync(bits: number, e: bigint): Promise<RSAKeyPair> {
+  return new Promise((resolve, reject) => {
+    const id = ++workerIdCounter;
+    pendingCallbacks.set(id, { resolve, reject });
+    getWorker().postMessage({ id, type: 'rsa-keygen', bits, e: e.toString() });
+  });
+}
 
 
 export function RSACalculator() {
@@ -26,12 +61,17 @@ export function RSACalculator() {
   const [keys, setKeys] = useState<RSAKeyPair | null>(null);
   const [genError, setGenError] = useState('');
   const [generating, setGenerating] = useState(false);
+  const genIdRef = useRef(0); // stale-response guard
 
-  // Manual mode
+  // Manual mode — separate e so Generate and Manual don't cross-contaminate
   const [manP, setManP] = useState('');
   const [manQ, setManQ] = useState('');
+  const [manEStr, setManEStr] = useState('65537');
   const [manKeys, setManKeys] = useState<RSAKeyPair | null>(null);
   const [manError, setManError] = useState('');
+
+  // Cleanup worker on unmount
+  useEffect(() => () => { workerInstance?.terminate(); workerInstance = null; }, []);
 
   // Encrypt / Decrypt
   const [encMsg, setEncMsg] = useState('');
@@ -44,31 +84,32 @@ export function RSACalculator() {
   const [decN, setDecN] = useState('');
   const [decResult, setDecResult] = useState('');
 
-  function doGenerate() {
+  async function doGenerate() {
     setGenError('');
     const bits = parseInt(bitSize);
     const e = parseBigInt(eStr);
     if (!bits || bits < 16 || bits > 2048) { setGenError('Bit size must be 16-2048'); return; }
     if (!e || e < 3n) { setGenError('e must be >= 3'); return; }
     setGenerating(true);
-    setTimeout(() => {
-      try {
-        const k = generateRSAKeys(bits, e);
-        setKeys(k);
-        setEncE(k.e.toString());
-        setEncN(k.n.toString());
-        setDecD(k.d.toString());
-        setDecN(k.n.toString());
-      } catch (err) {
-        setGenError(String(err));
-      }
-      setGenerating(false);
-    }, 10);
+    const thisId = ++genIdRef.current;
+    try {
+      const k = await rsaKeygenAsync(bits, e);
+      if (genIdRef.current !== thisId) return; // stale response
+      setKeys(k);
+      setEncE(k.e.toString());
+      setEncN(k.n.toString());
+      setDecD(k.d.toString());
+      setDecN(k.n.toString());
+    } catch (err) {
+      if (genIdRef.current !== thisId) return;
+      setGenError(String(err));
+    }
+    setGenerating(false);
   }
 
   function doManualKeys() {
     setManError('');
-    const p = parseBigInt(manP), q = parseBigInt(manQ), e = parseBigInt(eStr);
+    const p = parseBigInt(manP), q = parseBigInt(manQ), e = parseBigInt(manEStr);
     if (!p || !q || !e) { setManError('Enter p, q, and e'); return; }
     if (!isPrime(p)) { setManError('p is not prime'); return; }
     if (!isPrime(q)) { setManError('q is not prime'); return; }
@@ -170,12 +211,12 @@ export function RSACalculator() {
               <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-700 dark:text-amber-400 space-y-1">
                 <p className="font-semibold">Primality test caveat</p>
                 <p>
-                  Primes are selected with a Miller–Rabin test that is <strong>deterministic only for
-                  n &lt; 3.3 × 10²⁴</strong> (using fixed witnesses 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37).
-                  For larger n, the same fixed witness set is reused, which is <em>not</em> probabilistically
-                  secure against an adversary who can construct a composite specifically crafted to fool
-                  those witnesses. Production RSA implementations use random witnesses (≥40 rounds) or
-                  deterministic tests like AKS. Do not use these keys for anything real.
+                  Primes are selected with a Miller–Rabin test: <strong>deterministic for
+                  n &lt; 3.3 × 10²⁴</strong> (~81 bits) using the fixed witness set
+                  {'{'}2, 3, …, 37{'}'} (Sorenson & Webster 2015). For larger n, the same 12 fixed witnesses
+                  are tested first, then 8 additional random witnesses drawn via <code>crypto.getRandomValues</code> (20
+                  rounds total, error ≤ 4⁻²⁰). This is adequate for educational use but not production —
+                  real RSA implementations use ≥40 rounds or FIPS 186-5 probabilistic tests.
                 </p>
               </div>
               {genError && <p className="text-sm text-destructive">{genError}</p>}
@@ -271,7 +312,7 @@ export function RSACalculator() {
               <CardDescription>Enter your own primes p and q to compute the full key pair</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <Label>Prime p</Label>
                   <Input value={manP} onChange={e => setManP(e.target.value)} className="font-mono" placeholder="61" />
@@ -279,6 +320,10 @@ export function RSACalculator() {
                 <div>
                   <Label>Prime q</Label>
                   <Input value={manQ} onChange={e => setManQ(e.target.value)} className="font-mono" placeholder="53" />
+                </div>
+                <div>
+                  <Label>Public exponent (e)</Label>
+                  <Input value={manEStr} onChange={e => setManEStr(e.target.value)} className="font-mono" placeholder="65537" />
                 </div>
               </div>
               <Button onClick={doManualKeys} className="w-full">Compute Key Pair</Button>

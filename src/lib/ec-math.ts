@@ -238,6 +238,8 @@ export function babyGiantStep(
   return { k: null, babySteps: Number(m), giantSteps: Number(m), totalOps: Number(2n * m) };
 }
 
+// Max p for iterative order computation: iterates up to Hasse bound (~2√p) per point.
+// At p=10000, worst case is ~200 iterations — fast. For larger p, use BSGS or Schoof.
 export function getPointOrder(P: ECPoint, A: bigint, _B: bigint, p: bigint): bigint {
   if (p > 10000n) throw new Error('getPointOrder: p too large (max 10000). Use Schoof or BSGS for larger curves.');
   if (isInfinity(P)) return 1n;
@@ -253,7 +255,9 @@ export function getPointOrder(P: ECPoint, A: bigint, _B: bigint, p: bigint): big
 }
 
 // Enumerates all points on the curve using Euler criterion + Tonelli-Shanks.
-// O(p·log²p) — feasible for p up to ~10⁵ in the browser.
+// O(p·log²p) — feasible for p up to ~10⁵ in the browser. UI callers impose
+// tighter limits: ECCalculator caps at p=1009 (table readability),
+// CurvePlot at p=200 (SVG scatter with individual dots).
 export function getAllPointsFast(A: bigint, B: bigint, p: bigint): ECPoint[] {
   if (p > 100003n) throw new Error('Prime too large to enumerate (max ~100000)');
   const points: ECPoint[] = [];

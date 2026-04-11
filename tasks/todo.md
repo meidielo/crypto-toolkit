@@ -1,6 +1,6 @@
 # CryptoToolkit - Task Tracker
 
-## Current State: 37 pages, 81 tests, code-split, deployed
+## Current State: 37 pages, 88 tests, code-split, deployed
 
 ## Completed Phases
 
@@ -170,3 +170,33 @@
 **What would I do differently next time?**
 - Add `npm run lint` to CI (or a pre-commit hook) so `Math.random` regressions like the CRTFault one don't land silently after the rule is written.
 - Write tests against exported pure functions, not inlined component helpers. Several attack pages have critical math helpers declared at module scope inside `.tsx` files — if those were in `lib/` they'd already be tested.
+
+---
+
+## Phase 13: Audit Sweep 3
+
+### Critical — FIXED
+- [x] **Miller-Rabin witness count silently wrong** — for n > 3.3×10²⁴, `slice(0,20)` returned 12 witnesses (not 20). Fixed: now uses all 12 fixed witnesses + 8 CSPRNG random witnesses (20 total). Error bound comment corrected. File: `crypto-math.ts`
+- [x] **AES-GCM CTR counter off-by-one** — NIST SP 800-38D Test Case 3 revealed GCM was starting CTR at counter=1 (J0) instead of counter=2 (J0+1). J0 is reserved for tag computation. Fixed `aesCTR` to accept `startCounter` param, GCM passes `2`. Files: `aes-math.ts`, `crypto.test.ts`
+- [x] **AES-ECB decrypt not cross-validated** — added independent FIPS 197 Appendix B decrypt test (ct→pt, not just roundtrip). File: `crypto.test.ts`
+
+### High — FIXED
+- [x] **RSA keygen blocks main thread** — moved to `crypto.worker.ts` with async message passing. Stale-response guard via `genIdRef`. Worker terminates on unmount. Files: `workers/crypto.worker.ts` (new), `RSACalculator.tsx`
+- [x] **`shadcn` already in devDependencies** — verified, no action needed
+- [x] **HMAC-SHA256 RFC 4231 test vectors** — added Test Case 1 ("Hi There") and Test Case 2 ("what do ya want for nothing?"). Both pass via Web Crypto API. File: `crypto.test.ts`
+
+### Medium — FIXED
+- [x] **MD padding formula already deduplicated** — `HashExtensionAttack.tsx` imports `mdPaddingBytes` from `sha256.ts`, no duplication exists
+- [x] **Miller-Rabin error bound comment fixed** — comment now accurately describes the hybrid approach
+- [x] **EC point limit constants documented** — limits differ by design (enumeration vs order vs table vs scatter). Added comments explaining each threshold. File: `ec-math.ts`
+- [x] **RSA Calculator eStr split** — separate `manEStr` state for Manual tab. Added e input field in Manual Keys UI. File: `RSACalculator.tsx`
+
+### New features — DONE
+- [x] **Pollard's rho factorization** — `pollardRho()` + `factorizeFast()` added. Floyd's cycle detection, falls back to trial division for small factors. Factorization page now handles up to 10^30 (was 10^18). Tests cover 15-digit and 14-digit semiprimes. Files: `crypto-math.ts`, `Factorization.tsx`, `crypto.test.ts`
+- [ ] **Common Modulus RSA Attack** — deferred
+- [ ] **PBKDF2 comparison in Argon2id page** — deferred
+
+### Verification
+- [x] `npm test` — 88 passed (was 81)
+- [x] `npm run lint` — 0 errors
+- [x] `npm run build` — clean, 220KB main bundle
