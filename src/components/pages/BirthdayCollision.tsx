@@ -24,19 +24,20 @@ export function BirthdayCollision() {
     if (bits < 8 || bits > 32) { setError('Truncation must be 8-32 bits'); return; }
 
     setComputing(true);
-    setTimeout(() => {
-      const mask = (1 << bits) - 1;
-      const seen = new Map<number, string>(); // truncated hash → message
-      let attempts = 0;
-      const maxAttempts = 1 << Math.min(bits, 24); // cap at 2^24
 
-      // One CSPRNG-derived session nonce so each run produces a different pair
-      // without drawing entropy in the hot loop (and without mixing in Date.now,
-      // which is inconsistent with the CSPRNG-only philosophy).
-      const seed = Array.from(randBytes(4)).map(b => b.toString(16).padStart(2, '0')).join('');
+    // Chunked async iteration: process CHUNK_SIZE hashes per frame to keep the
+    // UI responsive. At 24 bits we need up to 2^24 = 16M iterations — running
+    // synchronously would freeze the browser for seconds.
+    const mask = (1 << bits) - 1;
+    const seen = new Map<number, string>();
+    const maxAttempts = 1 << Math.min(bits, 24);
+    const CHUNK_SIZE = 10_000;
+    const seed = Array.from(randBytes(4)).map(b => b.toString(16).padStart(2, '0')).join('');
+    let offset = 0;
 
-      for (let i = 0; i < maxAttempts; i++) {
-        attempts++;
+    function processChunk() {
+      const end = Math.min(offset + CHUNK_SIZE, maxAttempts);
+      for (let i = offset; i < end; i++) {
         const msg = `msg_${seed}_${i}`;
         const fullHash = SHA256.hash(msg);
         const truncated = parseInt(fullHash.substring(0, Math.ceil(bits / 4)), 16) & mask;
@@ -48,7 +49,7 @@ export function BirthdayCollision() {
             msg1: existing,
             msg2: msg,
             hash: truncated.toString(16).padStart(Math.ceil(bits / 4), '0'),
-            attempts,
+            attempts: i + 1,
             expectedAttempts,
           });
           setComputing(false);
@@ -56,9 +57,16 @@ export function BirthdayCollision() {
         }
         seen.set(truncated, msg);
       }
-      setError(`No collision found in ${maxAttempts} attempts. Try fewer bits.`);
-      setComputing(false);
-    }, 10);
+      offset = end;
+      if (offset >= maxAttempts) {
+        setError(`No collision found in ${maxAttempts.toLocaleString()} attempts. Try fewer bits.`);
+        setComputing(false);
+      } else {
+        // Yield to browser, then process next chunk
+        setTimeout(processChunk, 0);
+      }
+    }
+    setTimeout(processChunk, 0);
   }
 
   return (

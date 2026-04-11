@@ -33,13 +33,16 @@ export function ECDSAWorkflow() {
   const [phase, setPhase] = useState<Phase>('setup');
 
   // Setup
+  // Default curve: y²=x³+x+1 mod 23. Full group has order 28 = 4×7.
+  // G=(13,16) generates the prime-order subgroup of order 7.
+  // ECDSA requires q prime, so we use the subgroup, not the full group.
   const [pStr, setPStr] = useState('23');
   const [aStr, setAStr] = useState('1');
   const [bStr, setBStr] = useState('1');
-  const [gxStr, setGxStr] = useState('0');
-  const [gyStr, setGyStr] = useState('1');
-  const [qStr, setQStr] = useState('28');
-  const [dStr, setDStr] = useState('7');
+  const [gxStr, setGxStr] = useState('13');
+  const [gyStr, setGyStr] = useState('16');
+  const [qStr, setQStr] = useState('7');
+  const [dStr, setDStr] = useState('3');
   const [pubKey, setPubKey] = useState<ECPoint | null>(null);
   const [setupError, setSetupError] = useState('');
 
@@ -69,7 +72,7 @@ export function ECDSAWorkflow() {
     const p = parseBigInt(pStr), A = parseBigInt(aStr), B = parseBigInt(bStr);
     const gx = parseBigInt(gxStr), gy = parseBigInt(gyStr);
     const q = parseBigInt(qStr), d = parseBigInt(dStr);
-    if (!p || !A || !B || gx === null || gy === null || !q || !d) {
+    if (!p || A === null || B === null || gx === null || gy === null || !q || !d) {
       setSetupError('Fill in all parameters'); return;
     }
     if (!isPrime(p)) { setSetupError('p must be prime'); return; }

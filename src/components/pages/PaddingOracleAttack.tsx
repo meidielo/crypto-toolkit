@@ -79,39 +79,41 @@ export function PaddingOracleAttack() {
     setRecoveredBytes([]);
     setOracleQueries(0);
 
-    // Attack the last block using the padding oracle
-    // For educational simplicity, attack only the last byte first
     const key = hexToBytesAES(keyHex);
-    const targetBlock = ctBlocks[ctBlocks.length - 1];
-    const prevBlock = ctBlocks.length > 1 ? ctBlocks[ctBlocks.length - 2] : iv;
-
-    const recovered: number[] = new Array(16).fill(0);
     let queries = 0;
+    const allRecovered: number[] = [];
 
-    // Recover bytes from position 15 down to 0
-    for (let pos = 15; pos >= 0; pos--) {
-      const padVal = 16 - pos;
-      // Set known bytes to produce correct padding for positions > pos
-      const tampered = [...prevBlock];
-      for (let j = pos + 1; j < 16; j++) {
-        tampered[j] = prevBlock[j] ^ recovered[j] ^ padVal;
-      }
+    // Attack every block, from first to last. For block i, the "previous"
+    // ciphertext block is ctBlocks[i-1] (or the IV for block 0).
+    for (let blockIdx = 0; blockIdx < ctBlocks.length; blockIdx++) {
+      const targetBlock = ctBlocks[blockIdx];
+      const prevBlock = blockIdx > 0 ? ctBlocks[blockIdx - 1] : iv;
+      const recovered: number[] = new Array(16).fill(0);
 
-      // Brute-force this byte position
-      let found = false;
-      for (let guess = 0; guess < 256; guess++) {
-        queries++;
-        tampered[pos] = prevBlock[pos] ^ guess ^ padVal;
-        if (paddingOracle(targetBlock, tampered, key)) {
-          recovered[pos] = guess;
-          found = true;
-          break;
+      // Recover bytes from position 15 down to 0
+      for (let pos = 15; pos >= 0; pos--) {
+        const padVal = 16 - pos;
+        const tampered = [...prevBlock];
+        for (let j = pos + 1; j < 16; j++) {
+          tampered[j] = prevBlock[j] ^ recovered[j] ^ padVal;
         }
+
+        let found = false;
+        for (let guess = 0; guess < 256; guess++) {
+          queries++;
+          tampered[pos] = prevBlock[pos] ^ guess ^ padVal;
+          if (paddingOracle(targetBlock, tampered, key)) {
+            recovered[pos] = guess;
+            found = true;
+            break;
+          }
+        }
+        if (!found) recovered[pos] = 0;
       }
-      if (!found) recovered[pos] = 0; // fallback
+      allRecovered.push(...recovered);
     }
 
-    setRecoveredBytes(recovered);
+    setRecoveredBytes(allRecovered);
     setOracleQueries(queries);
     setAttacking(false);
     setPhase('result');

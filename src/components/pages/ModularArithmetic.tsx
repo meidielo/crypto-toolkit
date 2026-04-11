@@ -103,7 +103,7 @@ export function ModularArithmetic() {
           onClick={() => {
             setInvError('');
             const a = parseBigInt(invA), m = parseBigInt(invM);
-            if (!a || !m) return;
+            if (a === null || !m) return;
             try {
               setInvResult(modInverse(a, m).toString());
             } catch (e) {
@@ -165,7 +165,7 @@ export function ModularArithmetic() {
           className="w-full"
           onClick={() => {
             const a = parseBigInt(gcdA), b = parseBigInt(gcdB);
-            if (!a || !b) return;
+            if (a === null || b === null) return;
             const g = gcd(a, b);
             const l = lcm(a, b);
             const ext = extendedGcd(a, b);
@@ -221,7 +221,7 @@ export function ModularArithmetic() {
           onClick={() => {
             setSqrtError('');
             const a = parseBigInt(sqrtA), p = parseBigInt(sqrtP);
-            if (!a || !p) return;
+            if (a === null || !p) return;
             if (!isPrime(p)) { setSqrtError('p must be prime'); return; }
             const r = sqrtModP(a, p);
             if (r === null) { setSqrtResult('No square root (a is not a quadratic residue mod p)'); }
@@ -254,7 +254,7 @@ export function ModularArithmetic() {
           className="w-full"
           onClick={() => {
             const a = parseBigInt(legA), p = parseBigInt(legP);
-            if (!a || !p) return;
+            if (a === null || !p) return;
             const r = legendreSymbol(a, p);
             const meaning = r === 1 ? 'Quadratic residue' : r === -1 ? 'Non-residue' : 'Zero (a ≡ 0 mod p)';
             setLegResult(`(${a}/${p}) = ${r}  — ${meaning}`);

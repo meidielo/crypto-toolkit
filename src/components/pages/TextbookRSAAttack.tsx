@@ -34,7 +34,7 @@ export function TextbookRSAAttack() {
   function doEncrypt() {
     setError('');
     const n = parseBigInt(nStr), e = parseBigInt(eStr), m = parseBigInt(mStr);
-    if (!n || !e || !m) { setError('Enter all parameters'); return; }
+    if (!n || !e || m === null) { setError('Enter all parameters'); return; }
     if (m >= n) { setError('m must be < n'); return; }
     const c = rsaEncrypt(m, e, n);
     setCiphertext(c);

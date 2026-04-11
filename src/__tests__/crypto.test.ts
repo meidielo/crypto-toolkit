@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { aesECB, aesECBDecrypt, aesGCM, hexToBytesAES, bytesToHexAES } from '../lib/aes-math';
+import { aesECB, aesECBDecrypt, aesGCM, mixColumns, invMixColumns, hexToBytesAES, bytesToHexAES } from '../lib/aes-math';
 import { SHA256 } from '../lib/sha256';
 import { hmacSHA256 } from '../lib/web-crypto';
 import { mod, modPow, modInverse, scalarMultiply, pointAdd, isInfinity, tonelliShanks, type ECPoint } from '../lib/ec-math';
@@ -38,6 +38,21 @@ describe('AES-128', () => {
     const k2 = hexToBytesAES('000102030405060708090a0b0c0d0e0f');
     const ct2 = hexToBytesAES('69c4e0d86a7b0430d8cdb78070b4c55a');
     expect(bytesToHexAES(aesECBDecrypt(ct2, k2))).toBe('00112233445566778899aabbccddeeff');
+  });
+
+  // Verify MixColumns and InvMixColumns are true inverses with a FIPS 197 §5.1.3
+  // intermediate state. This catches correlated matrix bugs that roundtrip tests miss.
+  it('invMixColumns(mixColumns(state)) === state', () => {
+    // State from FIPS 197 Appendix B, after ShiftRows in Round 1
+    const state = [
+      [0x63, 0x09, 0xcd, 0xba],
+      [0x53, 0x60, 0x70, 0xca],
+      [0x7b, 0x82, 0xd2, 0xd2],
+      [0xf6, 0xbe, 0xd2, 0x81],
+    ];
+    const mixed = mixColumns(state);
+    const roundTripped = invMixColumns(mixed);
+    expect(roundTripped).toEqual(state);
   });
 
   it('round-trips random data', () => {

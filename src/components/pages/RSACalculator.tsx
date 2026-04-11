@@ -135,14 +135,14 @@ export function RSACalculator() {
 
   function doEncrypt() {
     const m = parseBigInt(encMsg), e = parseBigInt(encE), n = parseBigInt(encN);
-    if (!m || !e || !n) return;
+    if (m === null || !e || !n) return;
     if (m >= n) { setEncResult(`Error: message m (${m}) must be < n (${n})`); return; }
     setEncResult(rsaEncrypt(m, e, n).toString());
   }
 
   function doDecrypt() {
     const c = parseBigInt(decMsg), d = parseBigInt(decD), n = parseBigInt(decN);
-    if (!c || !d || !n) return;
+    if (c === null || !d || !n) return;
     setDecResult(rsaDecrypt(c, d, n).toString());
   }
 

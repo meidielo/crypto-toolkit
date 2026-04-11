@@ -214,6 +214,13 @@ export function factorizeToString(n: bigint): string {
 
 // ============= RSA =============
 
+// Generate a random prime of the given bit length. Uses CSPRNG to pick a
+// random odd number with the high bit set, then finds the next prime via
+// incremental search. Note: this biases toward primes that follow a gap —
+// primes preceded by a large composite run are over-represented. For
+// educational RSA keygen this is acceptable; production implementations
+// (FIPS 186-5 §B.3.3) use independent random candidates with per-candidate
+// primality testing to avoid this bias.
 export function generateRandomPrime(bits: number): bigint {
   const bytes = Math.ceil(bits / 8);
   const arr = new Uint8Array(bytes);

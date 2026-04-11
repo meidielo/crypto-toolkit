@@ -1,6 +1,6 @@
 # CryptoToolkit - Task Tracker
 
-## Current State: 37 pages, 88 tests, code-split, deployed
+## Current State: 37 pages, 89 tests, code-split, deployed
 
 ## Completed Phases
 
@@ -198,5 +198,33 @@
 
 ### Verification
 - [x] `npm test` — 88 passed (was 81)
+- [x] `npm run lint` — 0 errors
+- [x] `npm run build` — clean, 220KB main bundle
+
+## Phase 14: Audit Sweep 4 ✅
+
+### Critical
+- [x] **Birthday Collision UI freeze** — 16M synchronous SHA-256 iterations on main thread. Fixed: chunked async iteration (10K per frame via `setTimeout(processChunk, 0)`). UI stays responsive during search.
+
+### High
+- [x] **RSA Attack used trial division** — O(√n) BigInt divisions froze UI for large n. Replaced with `factorizeFast` (Pollard's rho + trial division). Handles semiprimes up to ~10^30.
+- [x] **ECDSA default q=28 is composite** — ECDSA requires prime-order subgroup. Changed defaults to G=(13,16) on order-7 subgroup of the same curve, q=7, d=3. First-run now works without errors.
+- [x] **Padding Oracle only recovered last block** — attack now iterates all blocks (first to last), each with correct "previous" block. Full plaintext recovered for multi-block messages.
+
+### Medium
+- [x] **parseBigInt `!x` falsy for 0n** — `!x` rejects valid BigInt zero inputs. Fixed 10 instances across 6 files: ECDSAWorkflow (A, B), NonceReuseAttack (A, B), RSACalculator (m, c), RSAAttackWorkflow (C), TextbookRSAAttack (m), ModularArithmetic (a, b). Changed to `=== null`.
+- [x] **invMixColumns not independently tested** — added `invMixColumns(mixColumns(state)) === state` test with FIPS 197 intermediate state vector. Catches correlated matrix bugs.
+- [x] **generateRandomPrime bias undocumented** — `nextPrime(random)` over-represents primes after large gaps. Added FIPS 186-5 reference and explanation in comment.
+
+### Stale findings (already resolved in earlier phases)
+- Bleichenbacher "fake recovery" — auditor read pre-Phase-12 code. Current `runBleichenbacher` library recovers via genuine interval narrowing; `paddedM` is only used for UI verification display.
+- HSTS header — added in Phase 11
+- useCryptoWorker dead infrastructure — deleted in Phase 11
+- Missing NIST test vectors — added in Phase 13
+- URL routing — implemented in Phase 11
+- aria attributes — added in Phase 12
+
+### Verification
+- [x] `npm test` — 89 passed (was 88)
 - [x] `npm run lint` — 0 errors
 - [x] `npm run build` — clean, 220KB main bundle

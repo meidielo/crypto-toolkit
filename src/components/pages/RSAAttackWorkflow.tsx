@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StepCard, ComputationRow, FormulaBox } from '@/components/StepCard';
-import { mod, modPow, modInverse, gcd } from '@/lib/crypto-math';
+import { mod, modPow, modInverse, gcd, factorizeFast } from '@/lib/crypto-math';
 import { isqrt } from '@/lib/num-util';
 
 export function RSAAttackWorkflow() {
@@ -30,23 +30,19 @@ export function RSAAttackWorkflow() {
     setError('');
     setResult(null);
     const n = parseBigInt(nStr), e = parseBigInt(eStr), C = parseBigInt(cStr);
-    if (!n || !e || !C) { setError('Enter n, e, and C'); return; }
+    if (!n || !e || C === null) { setError('Enter n, e, and C'); return; }
     if (n < 4n) { setError('n too small'); return; }
 
     setComputing(true);
     setTimeout(() => {
       try {
+        // Pollard's rho + trial division: handles semiprimes up to ~10^30
+        // (orders of magnitude faster than pure trial division for large factors).
         const sqrtN = isqrt(n);
-
-        // Trial division from 2 upward (faster for educational-size numbers)
-        let p = 0n, q = 0n;
-        if (n % 2n === 0n) { p = 2n; q = n / 2n; }
-        else {
-          for (let i = 3n; i <= sqrtN; i += 2n) {
-            if (n % i === 0n) { p = i; q = n / i; break; }
-          }
-        }
-        if (p === 0n) { setError('Could not factor n'); setComputing(false); return; }
+        const factors = factorizeFast(n);
+        const primeFactors = Array.from(factors.keys()).sort((a, b) => (a < b ? -1 : 1));
+        if (primeFactors.length < 2) { setError('n appears to be prime — cannot factor'); setComputing(false); return; }
+        let p = primeFactors[0], q = n / p;
 
         // Ensure p <= q
         if (p > q) [p, q] = [q, p];

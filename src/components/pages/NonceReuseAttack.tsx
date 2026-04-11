@@ -58,7 +58,7 @@ export function NonceReuseAttack() {
     const p = parseBigInt(pStr), A = parseBigInt(aStr), B = parseBigInt(bStr);
     const gx = parseBigInt(gxStr), gy = parseBigInt(gyStr);
     const q = parseBigInt(qStr), d = parseBigInt(dStr);
-    if (!p || !A || !B || gx === null || gy === null || !q || !d) { setSetupError('Fill all fields'); return; }
+    if (!p || A === null || B === null || gx === null || gy === null || !q || !d) { setSetupError('Fill all fields'); return; }
     if (!isPrime(p)) { setSetupError('p must be prime'); return; }
     const G: ECPoint = { x: gx, y: gy };
     if (!isOnCurve(G, A, B, p)) { setSetupError('G is not on the curve'); return; }
