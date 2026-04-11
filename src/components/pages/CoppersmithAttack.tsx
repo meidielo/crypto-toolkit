@@ -1,3 +1,8 @@
+// Hastad's Broadcast Attack (e=3): the same plaintext encrypted under 3 different
+// RSA public keys with e=3 can be recovered via CRT + cube root — no private key
+// needed. The underlying technique is Coppersmith's theorem on small roots of
+// polynomials mod N; this demo implements the simplest case (identical messages).
+// File and route retain the "coppersmith" name for URL stability (#/coppersmith).
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';

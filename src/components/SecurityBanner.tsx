@@ -10,8 +10,11 @@ export function SecurityBanner() {
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    try { sessionStorage.setItem(STORAGE_KEY, String(dismissed)); }
-    catch { /* ignore */ }
+    // Only persist on actual dismissal — skip the initial false → false no-op.
+    if (dismissed) {
+      try { sessionStorage.setItem(STORAGE_KEY, 'true'); }
+      catch { /* ignore quota errors in private mode */ }
+    }
   }, [dismissed]);
 
   if (dismissed) return null;

@@ -82,3 +82,29 @@ Sidebar auto-expand initially used `useEffect(() => { if (activeCategory) setCol
 
 ### CSP `style-src 'unsafe-inline'` is unavoidable with React runtime `style={}`
 19 occurrences of `style={{...}}` across 7 files (CurvePlot scatter positioning, ShiftRows animation, progress bars). CSP3 `'unsafe-hashes'` only covers inline `style="..."` attributes in HTML, not JS-computed style objects. Nonce-based styles require build tooling changes (e.g., Emotion + nonce injection). Documented honestly rather than claiming a false fix.
+
+## 2026-04-11 - Audit Sweeps 3 & 4 (Phases 13–14)
+
+### AES-GCM CTR counter starts at J0+1, not J0
+NIST SP 800-38D reserves J0 (counter=1 for 96-bit IV) for the final tag XOR. Plaintext encryption uses counter=2 onward. Our aesCTR started at 1, producing wrong ciphertext for GCM. NIST Test Case 3 caught it immediately — always test with published vectors before claiming correctness.
+
+### Miller-Rabin: fixed witnesses are deterministic only below a threshold
+The 12 fixed witnesses {2..37} are deterministic for n < 3.3×10²⁴. Above that, CSPRNG random witnesses are needed for probabilistic soundness. The original code used `slice(0, rounds)` which returned only 12 witnesses even when `rounds=20` was requested.
+
+### ECDSA requires a prime-order subgroup, not just any group order
+Curve y²=x³+x+1 mod 23 has order 28 = 4×7. Using q=28 (composite) for ECDSA is wrong — modular inverse of k fails when gcd(k,q)≠1. Must use a prime-order subgroup: G=(13,16) generates the order-7 subgroup.
+
+### sessionStorage.setItem on every effect run is wasteful and surprising
+SecurityBanner wrote `sessionStorage.setItem(key, String(dismissed))` on mount (writing "false"). Harmless but wrong — the intent is to persist *dismissal*, not the initial state. Guard with `if (dismissed)`.
+
+### Audit methodology: read the actual code, not just the task tracker
+An external audit flagged 5 items as "still open" by reading tasks/todo.md from an earlier phase. All 5 had been fixed in subsequent phases. Lesson: audit findings must be verified against current source, not historical documentation. The tracker is a planning tool, not a source of truth for current state.
+
+### Pollard's rho needs a primality guard
+`pollardRho(p)` on a prime p will loop forever (no non-trivial factor exists). Always check `isPrime(n)` first and return n immediately. The `factorizeFast` wrapper handles this correctly.
+
+### Chunked async iteration keeps UI responsive for long computations
+Birthday Collision was doing 16M synchronous SHA-256 iterations, freezing the browser. Chunking 10K iterations per frame via `setTimeout(processChunk, 0)` yields to the event loop. Not as clean as a Web Worker, but sufficient for a demo and avoids the worker setup overhead.
+
+### Route/file naming: keep URLs stable even when terminology evolves
+CoppersmithAttack.tsx implements Hastad's Broadcast Attack but the route is `#/coppersmith`. Renaming the route would break bookmarks. Solution: document the naming rationale in a file-level comment, keep the URL.
