@@ -1,10 +1,10 @@
 # CryptoToolkit
 
-An interactive educational cryptography platform with 35 modules covering symmetric encryption, asymmetric cryptography, post-quantum lattice encryption, protocol composition, and implementation attacks. All computation runs client-side using BigInt arithmetic with `crypto.getRandomValues()` (CSPRNG) — no server required.
+An interactive educational cryptography platform with 37 modules covering symmetric encryption, asymmetric cryptography, post-quantum lattice encryption, protocol composition, and implementation attacks. All computation runs client-side using BigInt arithmetic with `crypto.getRandomValues()` (CSPRNG) — no server required.
 
 **Live:** [ctool.mdpstudio.com.au](https://ctool.mdpstudio.com.au)
 
-## Modules (35 pages)
+## Modules (37 pages)
 
 ### Cryptography
 - **Elliptic Curve Calculator** — Point addition, scalar multiply, points table, preset curves (secp256k1, P-192, P-256). Parameter contradiction validation.
@@ -48,6 +48,8 @@ An interactive educational cryptography platform with 35 modules covering symmet
 - **Schnorr ZKP** — Interactive zero-knowledge proof with cheating prover mode (soundness demo).
 - **Birthday Collision** — Truncated SHA-256 collision finder with sqrt(N) scaling.
 - **Constant-Time Comparison** — Early-exit vs XOR-based string comparison with timing measurements.
+- **LLL Lattice Reduction** — 2D Gram-Schmidt orthogonalization visualization with Lovász condition.
+- **Meet-in-the-Middle** — S-DES double encryption key recovery in O(2^n) vs O(2^2n) brute force.
 
 ### Utilities
 - **Base & Encoding** — SHA-1/SHA-256 hashing (LF/CRLF aware), text↔hex/binary/decimal/base64, base conversion.
@@ -56,10 +58,10 @@ An interactive educational cryptography platform with 35 modules covering symmet
 
 ## Tech Stack
 
-- **React 19** + **Vite 8** — Code-split with React.lazy (main bundle 217KB → 65KB gzipped)
-- **TypeScript 5.9** — Strict mode with noUnusedLocals
+- **React 19** + **Vite 8** — Code-split with React.lazy (main bundle 220KB, 67KB gzipped)
+- **TypeScript 5.9** — Strict mode with noUnusedLocals, verbatimModuleSyntax
 - **Tailwind CSS v4** + **shadcn/ui** — Dark/light theme, responsive 320px-1280px+
-- **Vitest** — 66 tests covering AES, SHA-256, EC math, number theory, RSA, Bleichenbacher, parsing
+- **Vitest** — 95 tests covering AES, SHA-256, EC math, number theory, RSA, LWE, Shamir, Bleichenbacher, parsing
 - **BigInt** — Arbitrary precision, no external math libraries
 - **Web Crypto API** — CSPRNG, constant-time ECDSA/AES/RSA comparison
 - **hash-wasm** — Argon2id WASM in dedicated Web Worker
@@ -71,7 +73,8 @@ An interactive educational cryptography platform with 35 modules covering symmet
 npm install
 npm run dev      # dev server at localhost:5173
 npm run build    # production build
-npm test         # 66 tests
+npm test         # 95 tests
+npm run ci       # full check: tsc + lint + test
 ```
 
 ## Architecture
@@ -102,6 +105,16 @@ src/
   __tests__/
     crypto.test.ts        # AES, SHA-256, EC math, number theory, LWE test vectors
 ```
+
+## Design Decisions
+
+**Custom SHA-256 instead of Web Crypto.** `crypto.subtle.digest` doesn't expose internal state. The hash length extension attack requires setting a custom initial hash value (the attacker-known MAC output) and resuming from an arbitrary midpoint — impossible with a sealed API. Built a from-scratch FIPS 180-4 implementation with `getState()` / `resume()` to make the Merkle-Damgard vulnerability tangible.
+
+**Real attacks, not simulations.** Every attack page computes the actual exploit. Bleichenbacher's padding oracle does genuine interval narrowing across multiple iterations — the recovered plaintext is the output of the algorithm, not a pre-known value revealed with animation. The CLAUDE.md audit rules enforce this: "if the attack doesn't actually recover the secret through the algorithmic process, label it clearly as a simulation."
+
+**BigInt arithmetic with known limitations.** GHASH length encoding uses 32-bit JS bitwise ops (correct for inputs < 268MB, documented). `generateRandomPrime` uses `nextPrime(random)` which biases toward primes after large gaps (documented with FIPS 186-5 reference). Miller-Rabin uses 12 fixed witnesses + CSPRNG extras above the deterministic threshold of 3.3×10²⁴. These are deliberate scope boundaries for an educational tool, not oversights.
+
+**RSA keygen in a Web Worker.** Generating 2048-bit keys requires iterative primality testing that blocks the main thread for 1-5 seconds. Moved to `crypto.worker.ts` with a stale-response guard (`genIdRef`) so rapid re-generation doesn't apply an outdated result.
 
 ## Security Headers (Deployment)
 

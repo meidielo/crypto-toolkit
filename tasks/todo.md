@@ -266,8 +266,21 @@
 - vercel.json/_headers sync script (#9 in audit) — CI enhancement
 - CoppersmithAttack internal naming (#10 in audit) — already documented with file comment
 
-### Verification
+### Post-phase verification
 - [x] `npm test` — 95 passed (was 89)
 - [x] `npm run lint` — 0 errors
 - [x] `npx tsc --noEmit` — 0 errors
 - [x] `npm run build` — clean, 220KB main bundle (67KB gzipped)
+- [x] `tsc -b --force` — clean (verbatimModuleSyntax audit: all type imports use `type` keyword)
+- [x] `usePhaseStatus` logic verified against all flow shapes (first/middle/last phase, 3–6 phase flows)
+
+---
+
+## Open backlog (low priority — DX/docs, not correctness)
+
+- [ ] **Vercel/_headers sync check** — no automated diff; manual process. Could add a CI script or pre-commit hook.
+- [ ] **Sidebar search/filter** — 37 modules approaching scan limit. `/` hotkey filter over NAV_ITEMS.
+- [ ] **vitest coverage config** — `coverage: { provider: 'v8', include: ['src/lib/**'] }` for `npm test -- --coverage`
+- [ ] **ConstantTimeDemo `crypto.subtle.verify`** — add a third timed comparison using Web Crypto to complete the pedagogical arc
+- [ ] **Common Modulus RSA Attack** — deferred from Phase 13
+- [ ] **PBKDF2 comparison in Argon2id page** — deferred from Phase 13
