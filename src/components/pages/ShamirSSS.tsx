@@ -144,6 +144,13 @@ export function ShamirSSS() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">Storing a secret in one place creates a single point of failure — lose it and the secret is gone, compromise it and the secret is exposed.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">A polynomial of degree t-1 is uniquely determined by t points but completely undetermined by t-1 points. Shamir's scheme encodes the secret as the constant term f(0), distributes n points on the polynomial, and requires any t points to reconstruct via Lagrange interpolation. With t-1 shares, you have zero information about the secret (information-theoretic security).</p>
+      </div>
+
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <TabsList className="w-full flex">
           <TabsTrigger value="setup">Dealer Setup</TabsTrigger>
@@ -358,6 +365,14 @@ export function ShamirSSS() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>This demo uses a small prime field for visibility. Real deployments use 256-bit primes or operate over GF(2<sup>8</sup>) (as in the SSSS tool and GF(256)-based implementations).</p>
+        <p>Basic Shamir SSS requires a trusted dealer who sees the secret and all shares. Verifiable Secret Sharing (Feldman VSS, Pedersen VSS) adds commitments so participants can verify their shares are consistent without trusting the dealer.</p>
+        <p>The reconstruction step requires computing modular inverses, which leaks timing information. Production implementations must use constant-time arithmetic to prevent side-channel attacks during the key ceremony.</p>
+        <p>Used in: cryptocurrency multi-sig wallets, HSM key backup, DNSSEC key ceremonies, and as a building block for Multi-Party Computation (MPC) protocols.</p>
+      </div>
     </div>
   );
 }

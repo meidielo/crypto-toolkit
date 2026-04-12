@@ -75,6 +75,22 @@ export function CipherTools() {
 
   return (
     <div className="space-y-6">
+      <Card className="bg-primary/5 border-primary/20">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">Classical Cipher Tools</CardTitle>
+          <CardDescription>
+            Encrypt, decrypt, and analyze text with classical ciphers — Caesar, Vigenere, ROT13, and Atbash.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">Classical ciphers (Caesar, Vigenere, etc.) are the foundation of cryptography education — understanding why they are broken helps explain why modern ciphers are designed the way they are.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">Caesar shifts by a fixed amount (breakable by trying all 26 shifts). Vigenere uses a repeating keyword (breakable by Kasiski examination + frequency analysis on each column). These ciphers teach the core principles: confusion (substitution), diffusion (spreading plaintext influence), and key space size (why 26 possible keys is not enough).</p>
+      </div>
+
       <Tabs defaultValue="caesar">
         <TabsList className="w-full flex">
           <TabsTrigger value="caesar">Caesar</TabsTrigger>

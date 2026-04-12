@@ -76,6 +76,13 @@ export function ConstantTimeDemo() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">Even if the math is correct, implementations can leak secrets through timing differences. If comparing a MAC takes longer when more bytes match, an attacker can guess one byte at a time — turning an exponential brute-force into a linear search.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">Constant-time comparison processes every byte regardless of where the first mismatch occurs, using bitwise XOR and OR to accumulate differences without branching. Variable-time code creates a timing oracle — conceptually similar to a padding oracle, but exploiting microsecond-level measurement instead of error messages.</p>
+      </div>
+
       <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-700 dark:text-amber-400 space-y-1">
         <p className="font-semibold">JavaScript caveat — this is a pedagogical demo, not a security guarantee</p>
         <p>
@@ -91,6 +98,7 @@ export function ConstantTimeDemo() {
       </div>
 
       <StepCard step={1} title="Setup" status={results.length > 0 ? 'complete' : 'active'}>
+        <p className="text-xs text-muted-foreground">Enter a secret and a guess. The demo will compare them using both methods thousands of times to measure the timing difference. Try varying how many leading characters match to see the timing leak.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">Secret (server-side)</Label><Input value={secret} onChange={e => setSecret(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">Guess (attacker tries)</Label><Input value={guess} onChange={e => setGuess(e.target.value)} className="font-mono" /></div>
@@ -165,6 +173,13 @@ export function ConstantTimeDemo() {
           </StepCard>
         </>
       )}
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>JavaScript cannot guarantee constant-time execution. JIT compilation, garbage collection, and speculative execution all add input-dependent noise. This demo illustrates the <em>concept</em> of timing side channels, not a production-safe implementation.</p>
+        <p>Real-world timing attacks work over networks: Brumley and Boneh (2003) demonstrated RSA key recovery over a LAN by measuring OpenSSL response times. Modern mitigations include <code>crypto.timingSafeEqual()</code> in Node.js and <code>crypto.subtle.verify()</code> in browsers, both implemented in native constant-time code.</p>
+        <p>Timing leaks extend beyond string comparison: modular exponentiation, memory access patterns (cache timing), and branch prediction can all leak secret-dependent information. This is why cryptographic libraries are written in C/assembly with explicit constant-time guarantees.</p>
+      </div>
     </div>
   );
 }

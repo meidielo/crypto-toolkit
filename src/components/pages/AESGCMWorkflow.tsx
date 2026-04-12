@@ -54,8 +54,18 @@ export function AESGCMWorkflow() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">AES-CBC encrypts but does not authenticate -- attackers can tamper with ciphertext undetected. Padding oracle attacks (Vaudenay 2002) showed that unauthenticated CBC decryption leaks plaintext byte-by-byte.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">GCM combines CTR mode encryption with GHASH authentication, producing a tag that detects any modification to the ciphertext or additional authenticated data. The nonce must never repeat with the same key -- reuse breaks both confidentiality and authenticity.</p>
+      </div>
+
       {/* Input */}
       <StepCard step={1} title="Input: Key, IV, Plaintext, AAD" status={getStatus('input')}>
+        <p className="text-xs text-muted-foreground">
+          GCM requires a 128-bit key, a 96-bit nonce (IV), and optionally Additional Authenticated Data (AAD) that is authenticated but not encrypted.
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">Key (32 hex = 16 bytes)</Label><Input value={keyHex} onChange={e => setKeyHex(e.target.value)} className="font-mono text-xs" /></div>
           <div><Label className="text-xs">IV/Nonce (24 hex = 12 bytes)</Label><Input value={ivHex} onChange={e => setIvHex(e.target.value)} className="font-mono text-xs" /></div>
@@ -153,6 +163,16 @@ export function AESGCMWorkflow() {
           </div>
         )}
       </StepCard>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">Limitations & real-world context</p>
+        <ul className="list-disc list-inside text-muted-foreground space-y-1">
+          <li>This implementation uses BigInt arithmetic for educational clarity. Production systems use constant-time native implementations (like Web Crypto) to prevent timing side channels.</li>
+          <li>GCM nonces must never repeat with the same key. For random 96-bit nonces, the birthday bound limits safe usage to about 2^32 messages per key.</li>
+          <li>GCM's authentication strength degrades with long messages. NIST SP 800-38D recommends limiting plaintext to 2^39 - 256 bits per invocation.</li>
+          <li>AES-GCM-SIV (RFC 8452) is a nonce-misuse-resistant alternative -- it remains secure if a nonce is accidentally reused, at the cost of slightly more computation.</li>
+        </ul>
+      </div>
     </div>
   );
 }

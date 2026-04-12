@@ -91,7 +91,15 @@ export function HMACWalkthrough() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">Using H(key || message) as a MAC is broken by length extension attacks on Merkle-Damgard hashes (SHA-256, SHA-512). An attacker who sees H(key || msg) can compute H(key || msg || padding || extra) without knowing the key. We need a secure way to combine a key with a hash function.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">HMAC uses two nested hash calls: H(K&oplus;opad || H(K&oplus;ipad || message)). The inner hash processes the message with one key derivative; the outer hash "seals" the result with another. This construction is provably secure (under standard assumptions about the hash function's compression function) even if the underlying hash has some structural weaknesses — the outer hash hides the internal state that length extension would exploit.</p>
+      </div>
+
       <StepCard step={1} title="Input" status={computed ? 'complete' : 'active'}>
+        <p className="text-xs text-muted-foreground">Enter any key and message. The walkthrough will show each intermediate value in the HMAC-SHA256 computation, then verify the result against the browser's native Web Crypto implementation.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">Key</Label><Input value={key} onChange={e => setKey(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">Message</Label><Input value={message} onChange={e => setMessage(e.target.value)} className="font-mono" /></div>
@@ -163,6 +171,13 @@ export function HMACWalkthrough() {
           </StepCard>
         </>
       )}
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>This walkthrough implements HMAC-SHA256 step-by-step in JavaScript for educational clarity. In production, always use <code>crypto.subtle.sign('HMAC', ...)</code> or <code>crypto.createHmac()</code> — native implementations are constant-time and audited against timing side channels.</p>
+        <p>HMAC is not the only way to build a secure MAC. KMAC (Keccak-based MAC) is simpler because SHA-3 is not vulnerable to length extension, so a single H(key || message) construction is already secure. CMAC uses a block cipher (AES) instead of a hash function.</p>
+        <p>The ipad/opad constants (0x36, 0x5c) were chosen to have a large Hamming distance from each other, ensuring the two key derivatives are always different. The specific values are not cryptographically significant — any pair of distinct constants with good diffusion properties would work.</p>
+      </div>
     </div>
   );
 }

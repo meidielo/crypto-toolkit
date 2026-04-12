@@ -137,8 +137,26 @@ export function SchnorrZKP() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">How can you prove you know a password (or private key) without revealing it? Sending the secret to the verifier risks interception. Zero-knowledge proofs let you prove knowledge of a secret while the verifier learns absolutely nothing about the secret itself.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">Schnorr uses a three-move "sigma protocol": the prover <strong>commits</strong> to a random value (t = g<sup>r</sup>), the verifier sends a random <strong>challenge</strong> c, and the prover <strong>responds</strong> with s = r + c&middot;x mod q. The verifier checks g<sup>s</sup> = t &middot; y<sup>c</sup>. Only someone who knows x can produce a valid s for an unpredictable c.</p>
+        <details className="mt-3">
+          <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">Step by step</summary>
+          <ol className="mt-2 text-xs text-muted-foreground list-decimal list-inside space-y-1">
+            <li><strong>Setup</strong> — public parameters (p, g, y = g<sup>x</sup> mod p). The prover knows secret x.</li>
+            <li><strong>Commit</strong> — prover picks random r, sends t = g<sup>r</sup> mod p to the verifier.</li>
+            <li><strong>Challenge</strong> — verifier picks random c and sends it to the prover.</li>
+            <li><strong>Respond</strong> — prover computes s = r + c&middot;x mod q and sends it back.</li>
+            <li><strong>Verify</strong> — verifier checks g<sup>s</sup> = t &middot; y<sup>c</sup> mod p. If equal, proof is accepted.</li>
+          </ol>
+        </details>
+      </div>
+
       {/* Setup */}
       <StepCard step={1} title="Setup: Public Parameters & Keys" status={getStatus('setup')}>
+        <p className="text-xs text-muted-foreground">The public key y = g<sup>x</sup> mod p is published. The verifier knows y but not x. The order q of the generator g determines the security level -- challenges and responses are reduced mod q.</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div><Label className="text-xs">p (prime)</Label><Input value={pStr} onChange={e => setPStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">g (generator)</Label><Input value={gStr} onChange={e => setGStr(e.target.value)} className="font-mono" /></div>
@@ -166,6 +184,7 @@ export function SchnorrZKP() {
           </div>
 
           <StepCard step={2} title="Commitment: Pick random r" status={getStatus('commit')}>
+            <p className="text-xs text-muted-foreground">The commitment t = g<sup>r</sup> hides the random value r. This must be sent before the challenge is revealed -- otherwise a cheater could work backwards to fake a valid response.</p>
             <div><Label className="text-xs">r (random secret)</Label><Input value={rStr} onChange={e => setRStr(e.target.value)} className="font-mono" /></div>
             <Button onClick={doCommit} className="w-full" size="sm">Compute t = g^r mod p</Button>
             {tVal !== null && (
@@ -177,6 +196,7 @@ export function SchnorrZKP() {
           </StepCard>
 
           <StepCard step={4} title="Response: Compute s" status={getStatus('respond')}>
+            <p className="text-xs text-muted-foreground">The response s = r + c&middot;x mod q combines the random commitment with the secret. Try "Cheating Prover" mode to see what happens when someone without the secret tries to respond -- they almost always fail.</p>
             <div className="flex gap-2 mb-2">
               <Badge
                 variant={!cheatingMode ? 'default' : 'outline'}
@@ -212,6 +232,7 @@ export function SchnorrZKP() {
           </div>
 
           <StepCard step={3} title="Challenge: Pick random c" status={getStatus('challenge')}>
+            <p className="text-xs text-muted-foreground">The verifier's random challenge ensures the prover can't prepare a fake proof in advance. The challenge must be unpredictable at the time the prover commits.</p>
             <Button onClick={doChallenge} className="w-full" size="sm">Generate Random Challenge c</Button>
             {cVal !== null && (
               <FormulaBox>
@@ -222,6 +243,7 @@ export function SchnorrZKP() {
           </StepCard>
 
           <StepCard step={5} title="Verify: Check g^s = t · y^c" status={getStatus('verify')}>
+            <p className="text-xs text-muted-foreground">If g<sup>s</sup> = t &middot; y<sup>c</sup> mod p, the proof is accepted. This works because g<sup>r+cx</sup> = g<sup>r</sup> &middot; (g<sup>x</sup>)<sup>c</sup> = t &middot; y<sup>c</sup>.</p>
             <Button onClick={doVerify} className="w-full" size="sm">Verify</Button>
             {verifyError && <p className="text-sm text-destructive">{verifyError}</p>}
             {verifyResult && (
@@ -258,6 +280,13 @@ export function SchnorrZKP() {
             )}
           </StepCard>
         </div>
+      </div>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>This demo uses a tiny group (p = 23) where the order q is small enough that a cheating prover has a non-negligible chance of guessing correctly. Real Schnorr uses q of ~256 bits, making the cheating probability 1/2<sup>256</sup> per round.</p>
+        <p>The interactive protocol shown here requires real-time communication between prover and verifier. The Fiat-Shamir heuristic replaces the verifier's random challenge with a hash of the commitment (c = H(t || message)), converting the protocol into a non-interactive signature scheme.</p>
+        <p>Zero-knowledge means the transcript (t, c, s) can be simulated by someone who does NOT know x -- just pick s and c randomly, then compute t = g<sup>s</sup> &middot; y<sup>-c</sup>. This proves the protocol reveals no information about x beyond the fact that the prover knows it.</p>
       </div>
 
       <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-3 text-xs text-blue-600 dark:text-blue-400 space-y-1">

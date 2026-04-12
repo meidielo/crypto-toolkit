@@ -78,6 +78,13 @@ export function CoppersmithAttack() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">RSA with small public exponent (e=3) and short messages is vulnerable — the ciphertext may not wrap around mod n, making the encryption reversible.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">If m<sup>e</sup> &lt; n, then c = m<sup>e</sup> exactly (no modular reduction), and the attacker just computes the integer e-th root. More generally, Coppersmith's theorem finds small roots of polynomials mod n using lattice reduction (LLL), recovering messages that are a fraction of n's bit length. Hastad's broadcast attack extends this: the same message sent to e recipients under different moduli can be recovered via CRT + integer root.</p>
+      </div>
+
       <StepCard step={1} title="Encrypt m with e=3 to 3 Recipients" status={getStatus('setup')}>
         <InlineWarning>
           Same message m encrypted with e=3 under 3 different moduli n₁, n₂, n₃.
@@ -132,6 +139,13 @@ export function CoppersmithAttack() {
           </div>
         )}
       </StepCard>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>This demo uses small moduli for visibility. Real RSA uses 2048+ bit keys, but the mathematical principle is identical — if the message space is small relative to n, the attack applies regardless of key size.</p>
+        <p>The attack requires the same plaintext encrypted to e or more recipients. OAEP padding adds unique randomness per encryption, so even identical messages produce different padded values, defeating both Hastad's attack and direct root extraction.</p>
+        <p>Coppersmith's full theorem (1996) is more powerful than this demo shows: it can find all roots of a univariate polynomial mod n that are smaller than n<sup>1/e</sup>, using the LLL lattice basis reduction algorithm. This generalizes to partial key exposure attacks, stereotyped messages, and more.</p>
+      </div>
     </div>
   );
 }

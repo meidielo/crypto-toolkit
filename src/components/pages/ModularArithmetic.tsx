@@ -84,6 +84,32 @@ export function ModularArithmetic() {
   const [primeResult, setPrimeResult] = useState('');
 
   return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">Modular Arithmetic Toolkit</CardTitle>
+          <CardDescription>
+            The building blocks of cryptography. Every operation here — modular inverse, exponentiation, GCD — appears inside RSA, Diffie-Hellman, elliptic curves, and more.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">Why modular arithmetic?</p>
+        <p className="text-muted-foreground">Cryptography works in finite number systems where values "wrap around" at a modulus. This creates one-way functions: computing a<sup>b</sup> mod n is fast (square-and-multiply), but reversing it (discrete log) is hard. Modular inverse lets you "divide" in this system, and the Extended Euclidean Algorithm finds it efficiently.</p>
+        <details className="mt-3">
+          <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">Where each operation appears in cryptography</summary>
+          <ul className="mt-2 text-xs text-muted-foreground list-disc list-inside space-y-1">
+            <li><strong>Modular inverse</strong> — RSA private key d = e⁻¹ mod φ(n); EC point addition uses slope = Δy × (Δx)⁻¹ mod p</li>
+            <li><strong>Modular exponentiation</strong> — RSA encrypt/decrypt (m^e mod n), Diffie-Hellman (g^a mod p), primality testing</li>
+            <li><strong>GCD / Extended GCD</strong> — key generation validation (gcd(e, φ(n)) = 1), Bézout coefficients for modular inverse</li>
+            <li><strong>Euler's totient</strong> — RSA key generation: d = e⁻¹ mod φ(n); Euler's theorem: a^φ(n) ≡ 1 (mod n)</li>
+            <li><strong>Square root mod p</strong> — recovering EC y-coordinate from compressed point (x, parity bit)</li>
+            <li><strong>Legendre symbol</strong> — checking if a point exists on an EC curve (is y² a quadratic residue?)</li>
+          </ul>
+        </details>
+      </div>
+
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Modular Inverse */}
       <CalcCard title="Modular Inverse" description="Find a⁻¹ mod m such that a × a⁻¹ ≡ 1 (mod m)">
@@ -266,7 +292,7 @@ export function ModularArithmetic() {
       </CalcCard>
 
       {/* Primality Test */}
-      <CalcCard title="Primality Test" description="Miller-Rabin primality test (deterministic for n < 3.3×10²⁴)">
+      <CalcCard title="Primality Test" description="Miller-Rabin primality test (deterministic for n < 3.3×10²⁴). Uses witnesses {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37} — provably correct up to 3.3×10²⁴.">
         <div>
           <Label className="text-xs">n</Label>
           <Input value={primeN} onChange={e => setPrimeN(e.target.value)} className="font-mono" placeholder="104729" />
@@ -292,6 +318,7 @@ export function ModularArithmetic() {
           </div>
         )}
       </CalcCard>
+    </div>
     </div>
   );
 }

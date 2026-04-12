@@ -129,6 +129,13 @@ export function NonceReuseAttack() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">ECDSA requires a fresh random nonce k for every signature. Reusing k (or even using k values with known relationships) leaks the entire private key.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">Two signatures with the same k share the same r value. The equations s&#x2081; = k&#x207B;&#xB9;(z&#x2081; + rd) and s&#x2082; = k&#x207B;&#xB9;(z&#x2082; + rd) form a system of two equations with two unknowns (k, d) — trivially solvable. This is how the PS3 was hacked in 2010.</p>
+      </div>
+
       {/* Setup */}
       <StepCard step={1} title="Setup: Curve & Keys" status={getStatus('setup')}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -261,6 +268,13 @@ export function NonceReuseAttack() {
           </div>
         )}
       </StepCard>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>This demo uses a tiny curve for visibility. Real ECDSA uses P-256 or secp256k1 with ~256-bit keys, but the algebra of the nonce reuse attack is identical at any scale.</p>
+        <p>The attack is not limited to exact nonce reuse. If an attacker knows a linear relationship between two nonces (e.g. k&#x2082; = k&#x2081; + 1), the private key can still be extracted. Lattice-based attacks can exploit even partial nonce bias.</p>
+        <p>RFC 6979 (deterministic k derived via HMAC-DRBG from the private key and message hash) eliminates this entire class of vulnerability by making k deterministic and unique per message, with no reliance on a random number generator at signing time.</p>
+      </div>
     </div>
   );
 }

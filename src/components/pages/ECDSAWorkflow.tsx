@@ -162,8 +162,25 @@ export function ECDSAWorkflow() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">How can you prove a message came from you and hasn't been tampered with? A digital signature lets anyone with your public key verify authenticity, without needing to share a secret.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">ECDSA ties a message's hash to the signer's private key using elliptic curve math. The signature (r, s) is easy to verify with the public key but impossible to forge without the private key. ECDSA secures Bitcoin transactions, TLS certificates, and code signing.</p>
+        <details className="mt-3">
+          <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">Step by step</summary>
+          <ol className="mt-2 text-xs text-muted-foreground list-decimal list-inside space-y-1">
+            <li><strong>Setup</strong> — choose a curve and generator G with prime order q. Pick a private key d, compute public key Q = dG.</li>
+            <li><strong>Hash</strong> — compute H = SHA-256(message), converted to an integer.</li>
+            <li><strong>Sign</strong> — pick a random nonce k, compute R = kG. The signature is r = R.x mod q and s = k<sup>-1</sup>(H + r&middot;d) mod q.</li>
+            <li><strong>Verify</strong> — compute w = s<sup>-1</sup>, then check that u<sub>1</sub>G + u<sub>2</sub>Q has x-coordinate equal to r.</li>
+          </ol>
+        </details>
+      </div>
+
       {/* Step 1: Setup */}
       <StepCard step={1} title="Setup: Curve & Keys" status={getStatus('setup')}>
+        <p className="text-xs text-muted-foreground">The curve equation y&#178; = x&#179; + Ax + B over a prime field defines the group. G is a base point of prime order q, which is required for ECDSA's modular arithmetic to work correctly.</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div><Label className="text-xs">A</Label><Input value={aStr} onChange={e => setAStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">B</Label><Input value={bStr} onChange={e => setBStr(e.target.value)} className="font-mono" /></div>
@@ -190,6 +207,7 @@ export function ECDSAWorkflow() {
 
       {/* Step 2: Hash */}
       <StepCard step={2} title="Hash the Message" status={getStatus('hash')}>
+        <p className="text-xs text-muted-foreground">Hashing maps the message to a fixed-size integer. ECDSA signs this hash, not the raw message, so any-length message can be signed and even a single-bit change produces a completely different signature.</p>
         <Textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Enter message to sign..." rows={2} className="font-mono" />
         <div className="flex items-center gap-3">
           <Label className="text-xs">Line Endings:</Label>
@@ -208,6 +226,7 @@ export function ECDSAWorkflow() {
 
       {/* Step 3: Sign */}
       <StepCard step={3} title="Generate Signature (r, s)" status={getStatus('sign')}>
+        <p className="text-xs text-muted-foreground">The nonce k must be unique and secret for every signature. In 2010, Sony reused the same k for all PS3 firmware signatures, allowing hackers to recover the private key with simple algebra. Two signatures with the same k let an attacker solve for d directly.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">k (nonce, random)</Label><Input value={kStr} onChange={e => setKStr(e.target.value)} className="font-mono" /></div>
         </div>
@@ -237,6 +256,7 @@ export function ECDSAWorkflow() {
 
       {/* Step 4: Verify */}
       <StepCard step={4} title="Verify Signature" status={getStatus('verify')}>
+        <p className="text-xs text-muted-foreground">Verification uses only the public key Q, the hash H, and the signature (r, s). If the recomputed point's x-coordinate matches r, the signature is valid. This proves the signer knew d without revealing it.</p>
         <Button onClick={doVerify} className="w-full">Verify Signature</Button>
         {verifyError && <p className="text-sm text-destructive">{verifyError}</p>}
         {verifyResult && (
@@ -279,6 +299,13 @@ export function ECDSAWorkflow() {
           />
         )}
       </StepCard>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>This demo uses a tiny curve (23-bit prime) for visibility. Real ECDSA uses P-256 or secp256k1 with ~256-bit keys, making brute force infeasible.</p>
+        <p>The modular inverse here uses extended Euclidean with data-dependent branching, which leaks timing information. Production implementations use constant-time Montgomery arithmetic via crypto.subtle.sign().</p>
+        <p>RFC 6979 derives k deterministically from the private key and message hash, eliminating the risk of bad randomness or nonce reuse without requiring a secure RNG at signing time.</p>
+      </div>
     </div>
   );
 }

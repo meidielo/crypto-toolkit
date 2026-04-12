@@ -101,8 +101,25 @@ export function AESWorkflow() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">You need to encrypt data so only the key holder can read it. The cipher must be fast in hardware and software, resist all known cryptanalytic attacks, and work on fixed-size blocks of data.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">AES (Rijndael) operates on a 4×4 matrix of bytes called the "state." Each round applies four transformations that together provide both confusion (SubBytes — nonlinear S-box substitution) and diffusion (ShiftRows + MixColumns — spreading each byte's influence across the entire state). After 10 rounds, every output bit depends on every input bit and every key bit.</p>
+        <details className="mt-3">
+          <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">The four round operations</summary>
+          <ol className="mt-2 text-xs text-muted-foreground list-decimal list-inside space-y-1">
+            <li><strong>SubBytes</strong> — each byte is replaced by its S-Box value (multiplicative inverse in GF(2⁸) + affine transform). This is the only nonlinear step — it defeats linear and differential cryptanalysis.</li>
+            <li><strong>ShiftRows</strong> — rows of the state matrix are cyclically shifted left by 0, 1, 2, 3 positions. This ensures bytes from one column spread to different columns.</li>
+            <li><strong>MixColumns</strong> — each column is multiplied by a fixed matrix in GF(2⁸). This provides diffusion within each column using polynomial multiplication mod x⁴+1.</li>
+            <li><strong>AddRoundKey</strong> — XOR the state with the round key derived from the key schedule. This is where the secret key enters each round.</li>
+          </ol>
+        </details>
+      </div>
+
       {/* Step 1: Input */}
       <StepCard step={1} title="Input: Plaintext & Key" status={getStatus('input')}>
+        <p className="text-xs text-muted-foreground">AES-128 takes a 16-byte plaintext and a 16-byte key. Before any rounds, an initial AddRoundKey XORs the plaintext with the original key (Round 0). This visualization shows Round 1 — the first of 10 rounds that transforms the state.</p>
         <div className="space-y-3">
           <div>
             <Label className="text-xs">Plaintext (32 hex chars = 16 bytes)</Label>
@@ -127,7 +144,7 @@ export function AESWorkflow() {
         {initial && afterSub && (
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              Each byte is replaced by its S-Box lookup value. S-Box[xy] where x=high nibble, y=low nibble.
+              Each byte is independently replaced via the S-Box: compute the multiplicative inverse in GF(2⁸), then apply an affine transformation. This is the only nonlinear operation in AES — without it, the entire cipher would be a linear system solvable by Gaussian elimination. The highlighted cells below show which bytes changed.
             </p>
             <div className="flex flex-wrap gap-4 items-start">
               <StateMatrix state={initial} label="Before" />
@@ -147,7 +164,7 @@ export function AESWorkflow() {
         {afterSub && afterShift && (
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              Row 0: no shift | Row 1: cyclic left 1 | Row 2: cyclic left 2 | Row 3: cyclic left 3
+              Each row is cyclically shifted left by its row index (0, 1, 2, 3 positions). This ensures that the four bytes in each column after ShiftRows came from four different columns before it — so the next MixColumns step combines bytes from across the entire state. Without ShiftRows, MixColumns would only mix bytes within the same column, requiring many more rounds to achieve full diffusion.
             </p>
             <ShiftRowsAnimation before={afterSub} after={afterShift} />
             <Button onClick={advance} variant="outline" className="w-full">Next: MixColumns →</Button>
@@ -160,7 +177,7 @@ export function AESWorkflow() {
         {afterShift && afterMix && (
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              Each column is multiplied by a fixed matrix in GF(2^8) with irreducible polynomial x^8+x^4+x^3+x+1.
+              Each column is treated as a polynomial over GF(2⁸) and multiplied by a fixed matrix. The arithmetic uses the irreducible polynomial x⁸+x⁴+x³+x+1 (0x11b). "Multiply by 2" means left-shift, then XOR with 0x1b if the high bit was set. "Multiply by 3" is multiply-by-2 XOR the original. Select a column below to see the detailed GF arithmetic for each output byte.
             </p>
             <div className="flex flex-wrap gap-4 items-start">
               <StateMatrix state={afterShift} label="Before" />
@@ -230,7 +247,7 @@ export function AESWorkflow() {
         {afterMix && roundKey && afterARK && (
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              XOR the state with the round key (derived from key expansion).
+              XOR the state with the round key derived from AES key expansion (each round key is generated from the original key using RotWord, SubWord, and Rcon). XOR is its own inverse — applying the same round key again would undo this step. The key schedule ensures each round uses a different subkey, so knowing one round key doesn't directly reveal others.
             </p>
             <div className="flex flex-wrap gap-4 items-start">
               <StateMatrix state={afterMix} label="State" size="sm" />

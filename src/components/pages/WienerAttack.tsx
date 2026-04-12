@@ -122,6 +122,13 @@ export function WienerAttack() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">RSA with a small private exponent d (used for fast decryption) is insecure.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">Wiener's attack exploits the continued fraction expansion of e/n. When d &lt; n<sup>1/4</sup>/3, one of the convergents of e/n equals k/d, directly revealing the private key. The attack is pure number theory — no factoring needed.</p>
+      </div>
+
       <StepCard step={1} title="Input: Public Key (n, e)" status={phase === 'setup' ? 'active' : 'complete'}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">n (modulus)</Label><Input value={nStr} onChange={e => setNStr(e.target.value)} className="font-mono" /></div>
@@ -192,6 +199,13 @@ export function WienerAttack() {
           </div>
         </StepCard>
       )}
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>This demo uses a small modulus for visibility. Real RSA uses 2048+ bit keys, but the continued fraction attack scales — it depends only on the ratio d/n<sup>1/4</sup>, not on n's absolute size.</p>
+        <p>Wiener's bound (d &lt; n<sup>1/4</sup>/3) was later improved by Boneh and Durfee (1999) to d &lt; n<sup>0.292</sup> using lattice techniques. Standard RSA key generation with e=65537 naturally produces a large d (close to n in size), so this attack does not apply to correctly generated keys.</p>
+        <p>The attack recovers not just d but also the factorization of n (p and q), since knowing d and e allows computing phi(n) and solving a quadratic. This is a complete key compromise from only the public key (n, e).</p>
+      </div>
     </div>
   );
 }

@@ -115,8 +115,25 @@ export function ElGamalWorkflow() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">Standard RSA encryption is deterministic -- the same plaintext always produces the same ciphertext, which leaks information. We need encryption where identical messages look different every time.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">ElGamal extends Diffie-Hellman key exchange into a full encryption scheme. Each encryption uses a fresh random nonce r, so the same message encrypts to a different ciphertext every time. The "exponential" variant encodes the message as g<sup>m</sup>, which makes the scheme additively homomorphic: multiplying two ciphertexts produces a ciphertext that decrypts to the sum of the plaintexts.</p>
+        <details className="mt-3">
+          <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">Step by step</summary>
+          <ol className="mt-2 text-xs text-muted-foreground list-decimal list-inside space-y-1">
+            <li><strong>Key generation</strong> — pick prime p, generator g, private key x. Public key is y = g<sup>x</sup> mod p.</li>
+            <li><strong>Encrypt</strong> — pick random r, compute c<sub>1</sub> = g<sup>r</sup> and c<sub>2</sub> = y<sup>r</sup> &middot; g<sup>m</sup> mod p.</li>
+            <li><strong>Homomorphic addition</strong> — multiply ciphertexts component-wise to add the underlying messages.</li>
+            <li><strong>Decrypt</strong> — compute g<sup>m</sup> = c<sub>2</sub> &middot; (c<sub>1</sub><sup>x</sup>)<sup>-1</sup>, then recover m via discrete log.</li>
+          </ol>
+        </details>
+      </div>
+
       {/* Setup */}
       <StepCard step={1} title="Setup: Public & Private Keys" status={getStatus('setup')}>
+        <p className="text-xs text-muted-foreground">The public key y = g<sup>x</sup> mod p is easy to compute but hard to reverse (discrete log problem). Anyone can encrypt using y, but only the holder of x can decrypt.</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div><Label className="text-xs">p (prime)</Label><Input value={pStr} onChange={e => setPStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">g (generator)</Label><Input value={gStr} onChange={e => setGStr(e.target.value)} className="font-mono" /></div>
@@ -135,6 +152,7 @@ export function ElGamalWorkflow() {
 
       {/* Encrypt */}
       <StepCard step={2} title="Encrypt Message" status={getStatus('encrypt')}>
+        <p className="text-xs text-muted-foreground">The random nonce r makes encryption probabilistic. Try encrypting the same message twice with different r values -- you get different ciphertexts that both decrypt to the same plaintext.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">m (message, must be &lt; 10000 for decryption)</Label><Input value={mStr} onChange={e => setMStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">r (random nonce)</Label><Input value={rStr} onChange={e => setRStr(e.target.value)} className="font-mono" /></div>
@@ -155,7 +173,7 @@ export function ElGamalWorkflow() {
 
       {/* Homomorphic */}
       <StepCard step={3} title="Homomorphic Addition" status={getStatus('homomorphic')}>
-        <p className="text-xs text-muted-foreground">Encrypt a second message, then multiply ciphertexts to add plaintexts.</p>
+        <p className="text-xs text-muted-foreground">This is the key property: multiplying ciphertexts E(m<sub>1</sub>) and E(m<sub>2</sub>) component-wise gives E(m<sub>1</sub> + m<sub>2</sub>). A server can compute on encrypted data without ever seeing the plaintexts. Encrypt a second message below, then multiply to see the addition happen in ciphertext space.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">m₂</Label><Input value={m2Str} onChange={e => setM2Str(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">r₂</Label><Input value={r2Str} onChange={e => setR2Str(e.target.value)} className="font-mono" /></div>
@@ -181,6 +199,7 @@ export function ElGamalWorkflow() {
 
       {/* Decrypt */}
       <StepCard step={4} title="Decrypt" status={getStatus('decrypt')}>
+        <p className="text-xs text-muted-foreground">Decryption removes the random mask using the private key x, recovering g<sup>m</sup>. The final step solves the discrete log to get m -- this is only feasible for small messages (the tradeoff for homomorphic properties).</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">c₁</Label><Input value={decC1Str} onChange={e => setDecC1Str(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">c₂</Label><Input value={decC2Str} onChange={e => setDecC2Str(e.target.value)} className="font-mono" /></div>
@@ -195,6 +214,13 @@ export function ElGamalWorkflow() {
           </FormulaBox>
         )}
       </StepCard>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>Exponential ElGamal requires solving a discrete log to decrypt, which limits messages to small integers (here, max 10,000). Standard ElGamal encodes the message directly as m &middot; y<sup>r</sup> and avoids discrete log, but loses the homomorphic property.</p>
+        <p>The ciphertext is twice the size of the plaintext (two group elements per message). For large-scale encrypted computation, lattice-based fully homomorphic encryption (FHE) schemes are preferred, though they are orders of magnitude slower.</p>
+        <p>ElGamal is IND-CPA secure (chosen-plaintext) under the Decisional Diffie-Hellman assumption, but not IND-CCA2 secure -- an attacker who can request decryptions of modified ciphertexts can recover plaintext. Use Cramer-Shoup for CCA2 security.</p>
+      </div>
     </div>
   );
 }

@@ -95,6 +95,13 @@ export function TextbookRSAAttack() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">"Textbook RSA" (no padding) is deterministic and multiplicatively homomorphic — an attacker can manipulate ciphertexts and deduce plaintexts without knowing the private key.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">Without padding, RSA has many weaknesses: chosen-ciphertext attacks via homomorphism (c &times; 2<sup>e</sup> gives E(2m)), small message attacks, common modulus attacks. OAEP padding fixes all of these by adding randomized, structured padding before encryption, so any ciphertext modification corrupts the padding and is detected.</p>
+      </div>
+
       <StepCard step={1} title="Setup & Encrypt" status={getStatus('setup')}>
         <InlineWarning>
           Textbook RSA has a homomorphic property: E(m1) * E(m2) = E(m1 * m2). An attacker exploits this to manipulate ciphertexts.
@@ -162,6 +169,13 @@ export function TextbookRSAAttack() {
           </div>
         )}
       </StepCard>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>This demo uses a small modulus for visibility. Real RSA uses 2048+ bit keys where the arithmetic is identical but brute force is infeasible.</p>
+        <p>The attack requires a decryption oracle — the attacker must trick the server into decrypting the tampered ciphertext and returning the result. In practice, this is a realistic threat model (e.g. Bleichenbacher's attack against SSL/TLS).</p>
+        <p>RSA-OAEP (PKCS#1 v2) is the standard fix. It adds randomized padding so the same plaintext encrypts differently each time, and any ciphertext manipulation corrupts the padding structure, causing decryption to fail rather than return a related plaintext.</p>
+      </div>
     </div>
   );
 }

@@ -163,6 +163,24 @@ export function BleichenbacherAttack() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">RSA PKCS#1 v1.5 pads the message as 0x00||0x02||random_padding||0x00||message before encrypting. When a server decrypts an incoming ciphertext, it checks whether the result starts with 0x0002. If it doesn't, many implementations return a different error message or timing — this "padding oracle" leaks one bit of information per query.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">RSA is multiplicatively homomorphic: E(m) × s<sup>e</sup> mod n = E(m × s mod n). The attacker picks values of s, computes c' = c × s<sup>e</sup> mod n, and sends c' to the server. A "valid padding" response means m×s mod n falls in the range [2B, 3B) where B = 2<sup>8(k-2)</sup>. Each valid response narrows the possible range of m through interval arithmetic. After ~O(log n) successful oracle hits, the interval collapses to a single value — the exact plaintext.</p>
+        <details className="mt-3">
+          <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">Attack phases</summary>
+          <ol className="mt-2 text-xs text-muted-foreground list-decimal list-inside space-y-1">
+            <li><strong>Step 1 (Blinding)</strong> — find s₀ such that c × s₀<sup>e</sup> has valid padding, establishing the initial interval M₀ = [2B, 3B).</li>
+            <li><strong>Step 2a (Starting search)</strong> — find smallest s₁ ≥ n/(3B) such that c × s₁<sup>e</sup> has valid padding.</li>
+            <li><strong>Step 2b (Multiple intervals)</strong> — if |M| &gt; 1 interval, search for next s by incrementing.</li>
+            <li><strong>Step 2c (Single interval)</strong> — switch to a targeted (r, s) search that converges faster.</li>
+            <li><strong>Step 3 (Narrow)</strong> — update M by intersecting with constraints from the new s value.</li>
+            <li><strong>Repeat</strong> until M = {'{[a, a]}'} — a single value, which is the plaintext.</li>
+          </ol>
+        </details>
+      </div>
+
       <StepCard step={1} title="Setup: Small RSA + PKCS#1 v1.5 Padding" status={getStatus('setup')}>
         <InlineWarning>
           PKCS#1 v1.5 pads message as 0x00||0x02||random||0x00||message. The server checks

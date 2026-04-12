@@ -77,13 +77,23 @@ export function Factorization() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="bg-primary/5 border-primary/20">
+        <CardHeader className="pb-2">
           <CardTitle className="text-lg">Integer Factorization</CardTitle>
           <CardDescription>
-            Factor an integer into prime components using trial division. Also computes Euler's totient, divisor count, and next prime.
+            Factor an integer into prime components. Also computes Euler's totient, divisor count, and next prime.
           </CardDescription>
         </CardHeader>
+      </Card>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">{"RSA's security depends on the difficulty of factoring large numbers. If an attacker can factor the modulus n = p \u00D7 q, they can compute the private key directly. How do factoring algorithms actually work, and why does key size matter?"}</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">{"Trial division is O(\u221An) \u2014 fine for small numbers, hopeless for 2048-bit RSA. Pollard's rho uses Floyd's cycle detection on a pseudorandom sequence mod n, finding factors in O(n^{1/4}) expected time. The Number Field Sieve (used for real RSA attacks) achieves sub-exponential time but is far too complex for a browser demo. This tool uses trial division + Pollard's rho, which can handle semiprimes up to about 10^30."}</p>
+      </div>
+
+      <Card>
         <CardContent className="space-y-4">
           <div>
             <Label>Integer to factorize</Label>

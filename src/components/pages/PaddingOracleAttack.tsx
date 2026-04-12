@@ -135,7 +135,25 @@ export function PaddingOracleAttack() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">AES-CBC encrypts data but does not authenticate it. If a server tells an attacker whether decrypted data has valid padding (even just via a different error message or timing), the attacker can decrypt the entire ciphertext without the key.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">In CBC mode, flipping a byte in ciphertext block C<sub>i-1</sub> flips the corresponding byte in the decrypted block P<sub>i</sub>. The attacker tries all 256 values for one byte and asks the oracle "is the padding valid?" A "yes" reveals the plaintext byte via XOR. Repeat 16 times per block to recover everything.</p>
+        <details className="mt-3">
+          <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">Step by step</summary>
+          <ol className="mt-2 text-xs text-muted-foreground list-decimal list-inside space-y-1">
+            <li><strong>Encrypt</strong> — AES-CBC with PKCS#7 padding produces ciphertext blocks.</li>
+            <li><strong>Target the last byte</strong> — tamper with the previous block's last byte, cycling through 0-255.</li>
+            <li><strong>Query the oracle</strong> — the server decrypts and reports valid/invalid padding.</li>
+            <li><strong>Recover one byte</strong> — when padding is valid, XOR reveals the plaintext byte.</li>
+            <li><strong>Repeat</strong> — adjust the target padding value (0x02, 0x03, ...) and work backwards through each byte.</li>
+          </ol>
+        </details>
+      </div>
+
       <StepCard step={1} title="Encrypt with AES-CBC (no authentication)" status={getStatus('setup')}>
+        <p className="text-xs text-muted-foreground">We encrypt a plaintext with AES-128-CBC and PKCS#7 padding. In a real scenario, the attacker intercepts this ciphertext from the network. The key stays on the server -- the attacker never sees it.</p>
         <InlineWarning>
           AES-CBC encrypts data but does NOT authenticate it. An attacker can modify ciphertext and observe
           whether the server reports "invalid padding" — this response IS the oracle.
@@ -149,6 +167,7 @@ export function PaddingOracleAttack() {
       </StepCard>
 
       <StepCard step={2} title="Ciphertext (attacker sees this)" status={getStatus('encrypt')}>
+        <p className="text-xs text-muted-foreground">The attacker has the IV and ciphertext blocks. They will systematically modify bytes in the previous block and observe whether the server accepts or rejects the padding after decryption.</p>
         {ctBlocks.length > 0 && (
           <FormulaBox>
             <ComputationRow label="IV" value={bytesToHexAES(iv)} />
@@ -197,6 +216,13 @@ export function PaddingOracleAttack() {
           </div>
         )}
       </StepCard>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>This demo runs the oracle locally and instantly. Real attacks like POODLE (2014, SSLv3) and Lucky13 (2013, TLS) exploited padding oracles over the network, requiring thousands of requests per byte and careful timing analysis.</p>
+        <p>The fix is authenticated encryption (AES-GCM, ChaCha20-Poly1305). The authentication tag is checked before decryption, so a tampered ciphertext is rejected immediately with no padding information leaked.</p>
+        <p>Even "constant-time" CBC implementations can leak via micro-architectural side channels (cache timing, branch prediction). This is why modern TLS versions have moved away from CBC entirely.</p>
+      </div>
     </div>
   );
 }

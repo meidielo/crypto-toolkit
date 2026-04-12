@@ -47,6 +47,13 @@ export function CurvePlot() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">Elliptic curves over finite fields look like scattered dots — hard to visualize the group structure that makes elliptic curve cryptography work.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">Plotting the curve over the reals (y² = x³ + ax + b) shows the smooth geometric shape where chord-and-tangent addition makes visual sense. The finite field version preserves the algebraic structure but wraps coordinates mod p, producing what looks like random scatter. Despite appearances, point addition still follows the same group law — and the difficulty of reversing scalar multiplication (the ECDLP) is what secures modern cryptography.</p>
+      </div>
+
       <Card>
         <CardContent className="pt-4 space-y-3">
           <div className="flex flex-wrap gap-1.5">

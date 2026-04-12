@@ -114,7 +114,17 @@ export function DHSubgroupAttack() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">Diffie-Hellman is secure only if the generator g has large prime order. If an attacker tricks you into using a generator with small-order subgroups, they can recover your private key.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">If g has order n with small factors, the attacker can confine your public key to a small subgroup and use the Chinese Remainder Theorem to reconstruct your private key modulo each small factor. Combining these partial results recovers the full secret. The fix is to validate that received public keys lie in the correct prime-order subgroup, or use safe primes / elliptic curves with cofactor 1.</p>
+      </div>
+
       <StepCard step={1} title="Setup: Legitimate DH Parameters" status={getStatus('setup')}>
+        <p className="text-xs text-muted-foreground">
+          Set up a standard Diffie-Hellman group with prime p, generator g, and the victim's secret key. The attacker will later substitute malicious generators.
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div><Label className="text-xs">p (prime)</Label><Input value={pStr} onChange={e => setPStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">g (generator)</Label><Input value={gStr} onChange={e => setGStr(e.target.value)} className="font-mono" /></div>

@@ -62,6 +62,13 @@ export function ECBPenguin() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">ECB mode encrypts each block independently with the same key, so identical plaintext blocks produce identical ciphertext blocks — patterns in the plaintext are visible in the ciphertext.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">The famous "ECB penguin" shows this visually: encrypt a bitmap image with AES-ECB and the penguin's outline is still clearly visible. This is why ECB mode should never be used for data with structure — use CBC, CTR, or GCM instead, which chain or randomize blocks so identical plaintexts produce different ciphertexts.</p>
+      </div>
+
       <StepCard step={1} title="Encrypt with AES-ECB" status={blocks.length > 0 ? 'complete' : 'active'}>
         <InlineWarning>
           ECB mode has NO diffusion between blocks. Repeated plaintext patterns are visible in ciphertext.

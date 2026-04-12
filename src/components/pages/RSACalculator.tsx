@@ -180,6 +180,31 @@ export function RSACalculator() {
 
   return (
     <div className="space-y-6">
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">How RSA works</p>
+        <p className="text-muted-foreground">
+          RSA is built on one simple idea: multiplying two large primes is easy, but factoring the result back into
+          those primes is computationally infeasible. You pick two secret primes <strong>p</strong> and <strong>q</strong>,
+          multiply them to get <strong>n = p x q</strong>, then derive a public exponent <strong>e</strong> and a
+          private exponent <strong>d</strong> such that m<sup>ed</sup> mod n = m for any message m.
+        </p>
+        <p className="text-muted-foreground">
+          Anyone can encrypt with (e, n), but only someone who knows d — which requires knowing p and q — can decrypt.
+          The public key is (e, n). The private key is (d, n). Everything else (p, q, phi) must be destroyed after key generation.
+        </p>
+        <details className="text-xs text-muted-foreground">
+          <summary className="cursor-pointer font-semibold text-foreground">Key generation step by step</summary>
+          <ol className="list-decimal ml-4 mt-2 space-y-1">
+            <li>Choose two distinct primes p and q (randomly, using a primality test)</li>
+            <li>Compute n = p x q (the modulus — part of both public and private key)</li>
+            <li>Compute phi(n) = (p-1)(q-1) (Euler's totient — counts integers coprime to n)</li>
+            <li>Choose e such that 1 &lt; e &lt; phi(n) and gcd(e, phi(n)) = 1 (commonly 65537)</li>
+            <li>Compute d = e<sup>-1</sup> mod phi(n) (the modular inverse — the private exponent)</li>
+            <li>Public key: (e, n). Private key: (d, n). Discard p, q, phi(n).</li>
+          </ol>
+        </details>
+      </div>
+
       <Tabs defaultValue="generate">
         <TabsList className="w-full flex">
           <TabsTrigger value="generate">Generate Keys</TabsTrigger>
@@ -191,7 +216,7 @@ export function RSACalculator() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">RSA Key Generation</CardTitle>
-              <CardDescription>Generate random RSA key pairs for educational purposes</CardDescription>
+              <CardDescription>Generate random RSA key pairs. Try small keys (64-bit) to see the math, then larger keys to feel the computation time.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -246,11 +271,16 @@ export function RSACalculator() {
         </TabsContent>
 
         <TabsContent value="encrypt">
+          <p className="text-xs text-muted-foreground mb-3">
+            <strong>Encryption:</strong> raise the message to the public exponent e, mod n. <strong>Decryption:</strong> raise the ciphertext to the private exponent d, mod n.
+            This works because e and d are modular inverses mod phi(n), so m<sup>ed</sup> mod n = m (by Euler's theorem).
+            The message m must be smaller than n — in practice, you encrypt a symmetric key (e.g., AES), not raw data.
+          </p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Encrypt</CardTitle>
-                <CardDescription>c = m^e mod n</CardDescription>
+                <CardDescription>c = m<sup>e</sup> mod n — anyone with the public key can do this</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
@@ -278,7 +308,7 @@ export function RSACalculator() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Decrypt</CardTitle>
-                <CardDescription>m = c^d mod n</CardDescription>
+                <CardDescription>m = c<sup>d</sup> mod n — only the private key holder can do this</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
@@ -309,7 +339,7 @@ export function RSACalculator() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Manual Key Computation</CardTitle>
-              <CardDescription>Enter your own primes p and q to compute the full key pair</CardDescription>
+              <CardDescription>Enter your own primes to trace every step. Try p=61, q=53 to match textbook examples. The tool computes n, phi(n), d, and the CRT optimization values (dp, dq, qinv) automatically.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

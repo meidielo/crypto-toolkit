@@ -148,6 +148,13 @@ export function TLS13Workflow() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">TLS 1.2 had too many cipher suite options, leading to downgrade attacks and configuration errors. Negotiation required two round trips, and the server certificate was sent in the clear, leaking which site the client was connecting to.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">TLS 1.3 mandates ECDHE key exchange + AEAD ciphers, completes in 1-RTT (or 0-RTT for resumption), and encrypts the certificate. By removing legacy options (RSA key transport, CBC, RC4, SHA-1), the protocol eliminates entire classes of attacks while being faster to connect.</p>
+      </div>
+
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       {/* Two-column: Client | Server */}
@@ -193,6 +200,9 @@ export function TLS13Workflow() {
       <StepCard step={3} title="Key Derivation (HKDF-SHA256)" status={getStatus('derive')}>
         {handshakeSecret && (
           <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              The shared secret is never used directly. HKDF extracts entropy, then expands it into separate keys for client and server traffic.
+            </p>
             <div className="flex gap-2"><Badge variant="outline" className="text-xs">HKDF</Badge><Badge variant="outline" className="text-xs">SHA-256</Badge></div>
             <FormulaBox>
               <ComputationRow label="Early Secret" formula="HKDF-Extract(0, 0)" value={earlySecret.substring(0, 32) + '...'} />
@@ -239,6 +249,9 @@ export function TLS13Workflow() {
       <StepCard step={5} title="Encrypted Application Data" status={getStatus('appdata')}>
         {encryptedMsg && (
           <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Application data is encrypted with AES-GCM using the derived client key. The auth tag ensures the ciphertext has not been tampered with.
+            </p>
             <div className="flex gap-2"><Badge variant="outline" className="text-xs">AES-GCM</Badge><Badge variant="outline" className="text-xs">128-bit</Badge></div>
             <FormulaBox>
               <ComputationRow label="Plaintext" value={appMessage} />
@@ -274,6 +287,16 @@ export function TLS13Workflow() {
           </div>
         )}
       </StepCard>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">Limitations & real-world context</p>
+        <ul className="list-disc list-inside text-muted-foreground space-y-1">
+          <li>This simulation generates ephemeral keys per session -- real TLS 1.3 does the same, providing forward secrecy.</li>
+          <li>The server certificate here is self-signed. In production, it chains to a trusted CA via X.509, and the client validates the chain before trusting the signature.</li>
+          <li>0-RTT resumption (not shown) trades a round trip for replay risk -- servers must treat 0-RTT data as potentially replayed.</li>
+          <li>Real TLS 1.3 derives separate keys for each direction and for handshake vs. application phases using a more complex HKDF schedule (RFC 8446 Section 7).</li>
+        </ul>
+      </div>
     </div>
   );
 }

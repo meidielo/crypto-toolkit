@@ -75,6 +75,13 @@ export function LWEWorkflow() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">Shor's algorithm on a quantum computer breaks RSA and ECC. We need encryption based on problems that are hard even for quantum computers.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">Learning With Errors (LWE) adds small noise to linear equations over a finite field. Without the noise, the system is trivially solvable via Gaussian elimination. With noise, it becomes hard even for quantum computers — this is the basis of post-quantum lattice cryptography (Kyber/ML-KEM).</p>
+      </div>
+
       <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-3 text-xs text-blue-600 dark:text-blue-400 space-y-1">
         <p className="font-semibold">Why Post-Quantum?</p>
         <p>RSA and ECC rely on integer factorization and discrete logarithms — both solvable by Shor's algorithm on a quantum computer.
@@ -269,6 +276,13 @@ export function LWEWorkflow() {
           })()}
         </StepCard>
       )}
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>This demo uses tiny parameters (n=4, q=97) for visibility. Real ML-KEM (CRYSTALS-Kyber) uses n=256, q=3329, with carefully tuned noise distributions to achieve 2<sup>-138</sup> decryption failure probability and 128-bit post-quantum security.</p>
+        <p>LWE encrypts a single bit at a time. Practical schemes use Module-LWE or Ring-LWE to encrypt multiple bits efficiently, with structured lattices that allow polynomial multiplication via NTT for performance.</p>
+        <p>NIST standardized ML-KEM in FIPS 203 (2024) as the replacement for classical key exchange (ECDH). Hybrid deployments combining X25519 + ML-KEM-768 are already shipping in Chrome and other browsers.</p>
+      </div>
     </div>
   );
 }

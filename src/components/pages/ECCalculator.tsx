@@ -212,12 +212,38 @@ export function ECCalculator() {
 
   return (
     <div className="space-y-6">
+      <Card className="bg-primary/5 border-primary/20">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">Elliptic Curve Calculator</CardTitle>
+          <CardDescription>
+            Explore elliptic curve arithmetic over finite fields. Points on the curve form a group — the foundation of modern public-key cryptography.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">Public-key cryptography needs a mathematical "one-way function" — easy to compute forward, practically impossible to reverse. RSA uses integer factoring; elliptic curves offer the same security with much smaller keys (256-bit EC ≈ 3072-bit RSA).</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">An elliptic curve y² = x³ + Ax + B over a prime field F<sub>p</sub> defines a set of points that form an abelian group under a geometric "addition" rule. Given a point P and scalar k, computing kP (repeated addition) is fast via double-and-add. But given P and Q = kP, finding k is the Elliptic Curve Discrete Logarithm Problem (ECDLP) — believed to require O(√n) time with the best known algorithms.</p>
+        <details className="mt-3">
+          <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">Key concepts</summary>
+          <ul className="mt-2 text-xs text-muted-foreground list-disc list-inside space-y-1">
+            <li><strong>Point addition</strong> — draw a line through P and Q, find the third intersection with the curve, reflect over the x-axis. That's P + Q.</li>
+            <li><strong>Point doubling</strong> — when P = Q, use the tangent line at P instead.</li>
+            <li><strong>Scalar multiplication</strong> — kP = P + P + ... + P (k times), computed efficiently via double-and-add in O(log k) steps.</li>
+            <li><strong>Group order</strong> — the number of points on the curve. By Hasse's theorem: |#E - (p+1)| ≤ 2√p.</li>
+            <li><strong>Generator</strong> — a point whose multiples produce every point in the group (or a large subgroup).</li>
+          </ul>
+        </details>
+      </div>
+
       {/* Curve Configuration */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Curve Parameters</CardTitle>
           <CardDescription>
-            E(F<sub>p</sub>): y² = x³ + Ax + B (mod p)
+            E(F<sub>p</sub>): y² = x³ + Ax + B (mod p). The discriminant 4A³ + 27B² must be non-zero mod p (no singular points).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -290,9 +316,10 @@ export function ECCalculator() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">P + Q = R</CardTitle>
-              <CardDescription>Add two points on the curve</CardDescription>
+              <CardDescription>Add two points on the curve using the chord-and-tangent rule</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <p className="text-xs text-muted-foreground">Draw a line through P and Q. It intersects the curve at a third point R'. Reflect R' over the x-axis to get R = P + Q. When P = Q, use the tangent line (point doubling). The slope λ is computed mod p using modular inverse.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="font-semibold">Point P</Label>
@@ -371,6 +398,7 @@ export function ECCalculator() {
               <CardDescription>Multiply a point by a scalar using double-and-add</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <p className="text-xs text-muted-foreground">Double-and-add scans k's binary representation from MSB to LSB. For each bit: double the accumulator, then add P if the bit is 1. This computes kP in O(log k) group operations instead of O(k). The step table below shows each operation — this is the "forward" direction that's easy. Reversing it (given P and kP, find k) is the ECDLP.</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <Label htmlFor="sk">k (scalar)</Label>
@@ -421,6 +449,7 @@ export function ECCalculator() {
               <CardDescription>Constant-time scalar multiplication — same operations for bit=0 and bit=1, resisting simple power analysis (SPA)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <p className="text-xs text-muted-foreground">Standard double-and-add leaks the secret scalar k through timing or power analysis: an attacker can distinguish "double" from "double-then-add" for each bit. The Montgomery ladder always performs exactly one addition and one doubling per bit, regardless of the bit value. R0 and R1 always differ by exactly P — only which register gets the add vs double changes. Compare the step table with double-and-add above to see the constant operation pattern.</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <Label htmlFor="mk">k (scalar)</Label>
@@ -490,6 +519,7 @@ export function ECCalculator() {
               <CardDescription>O(√n) algorithm for the Elliptic Curve Discrete Logarithm Problem (ECDLP). Requires p ≤ 10000.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <p className="text-xs text-muted-foreground">BSGS is a time-space tradeoff: write k = im + j where m = ⌈√n⌉. Precompute a table of "baby steps" jG for j = 0..m-1. Then compute "giant steps" Q - imG for i = 0,1,2... and look for a match in the table. When found, k = im + j. This reduces O(n) brute force to O(√n) operations with O(√n) storage. For real curves (n ≈ 2²⁵⁶), even √n ≈ 2¹²⁸ is infeasible — that's why EC cryptography is secure.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="font-semibold">Base Point G</Label>
@@ -583,6 +613,7 @@ export function ECCalculator() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">All Points on the Curve</CardTitle>
+              <CardDescription className="space-y-1"><p className="text-xs text-muted-foreground mb-1">For small primes, we can enumerate every point by testing which x values have a square root y² ≡ x³ + Ax + B (mod p). Points with order equal to the group size are generators — their multiples produce every point. Click any point to use it in the Addition tab.</p></CardDescription>
               <CardDescription>
                 {allPoints
                   ? `${allPoints.length} points + point at infinity (O)${allPoints.length > POINTS_TABLE_CAP ? ` — showing first ${POINTS_TABLE_CAP}` : ''}`

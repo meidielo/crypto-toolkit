@@ -152,7 +152,15 @@ export function LLLVisualization() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">A lattice basis can consist of long, nearly parallel vectors (bad for computation and cryptanalysis). We need a basis with short, nearly orthogonal vectors that still spans the same lattice.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">LLL (Lenstra-Lenstra-Lovasz) iteratively size-reduces and swaps basis vectors until they satisfy the Lovasz condition: &delta;||b*<sub>k</sub>||&sup2; &le; ||b*<sub>k+1</sub> + &mu;&middot;b*<sub>k</sub>||&sup2;. The result is a basis with short, nearly orthogonal vectors. LLL runs in polynomial time and is the workhorse behind breaking knapsack cryptosystems, finding small RSA roots (Coppersmith's method), and approximately solving the Shortest Vector Problem (SVP).</p>
+      </div>
+
       <StepCard step={1} title="Input Basis" status="active">
+        <p className="text-xs text-muted-foreground">Enter two basis vectors or choose a preset. The algorithm will find shorter, more orthogonal vectors that generate the same lattice. Watch how the red (original) vectors transform into green (reduced) vectors.</p>
         <div className="flex flex-wrap gap-1.5 mb-3">
           {PRESETS.map((p, i) => (
             <Badge key={i} variant="outline" className="cursor-pointer" onClick={() => loadPreset(p)}>
@@ -211,6 +219,13 @@ export function LLLVisualization() {
           </StepCard>
         </>
       )}
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>This demo shows LLL on a 2D lattice for visualization. Real cryptanalytic applications operate in much higher dimensions (e.g., 50-400 dimensions for attacking lattice-based schemes or finding small RSA roots).</p>
+        <p>LLL produces an <em>approximately</em> short basis — the output vectors can be up to 2<sup>(n-1)/4</sup> times longer than the true shortest vector. Stronger algorithms like BKZ (Block Korkine-Zolotarev) give better approximations at higher computational cost, and are what real-world lattice attacks use.</p>
+        <p>Post-quantum schemes like Kyber (NIST standard) and Dilithium are designed so that even BKZ with large block sizes cannot find short enough vectors to break the scheme in polynomial time. Understanding LLL is essential for evaluating the security margins of these schemes.</p>
+      </div>
     </div>
   );
 }

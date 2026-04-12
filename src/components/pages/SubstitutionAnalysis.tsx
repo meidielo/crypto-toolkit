@@ -86,6 +86,13 @@ export function SubstitutionAnalysis() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">Simple substitution ciphers look random but preserve the statistical patterns of the plaintext language. Each letter is consistently replaced by the same substitute, so the underlying frequency distribution leaks through.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">{"English has distinctive letter frequencies (E\u224812.7%, T\u22489.1%, A\u22488.2%...). By matching ciphertext frequencies to known English frequencies, an attacker can recover the substitution key without brute force. This is frequency analysis \u2014 first described by Al-Kindi in the 9th century, and still the standard technique for breaking monoalphabetic ciphers."}</p>
+      </div>
+
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Ciphertext Input</CardTitle>

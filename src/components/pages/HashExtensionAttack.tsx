@@ -90,6 +90,13 @@ export function HashExtensionAttack() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">Merkle-Damgard hashes (MD5, SHA-1, SHA-256) have a structural weakness: knowing H(message) lets you compute H(message || padding || suffix) without knowing the message. This breaks naive "secret || message" MAC constructions.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">The hash's internal state after processing a message IS the hash output. An attacker can resume hashing from that state, appending arbitrary data. The server will accept the forged MAC because SHA-256 processes blocks independently -- it cannot tell whether the state came from the real prefix or was injected. Use HMAC instead: its double-hashing construction prevents length extension because the outer hash obscures the internal state.</p>
+      </div>
+
       <StepCard step={1} title="Setup: Server's MAC Scheme" status={getStatus('setup')}>
         <InlineWarning>
           The server uses MAC = SHA-256(secret || message). This is vulnerable because SHA-256's

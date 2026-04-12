@@ -79,7 +79,17 @@ export function GCMNonceReuse() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">AES-GCM is secure only if each (key, nonce) pair is used once. Reusing a nonce with the same key completely breaks authentication and leaks plaintext relationships.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">Two ciphertexts encrypted with the same nonce leak the XOR of plaintexts (like one-time pad reuse) and allow the attacker to recover the GHASH authentication key H, enabling forgery of arbitrary messages. A single nonce reuse is enough to compromise all past and future messages under that key.</p>
+      </div>
+
       <StepCard step={1} title="Encrypt Message 1" status={getStatus('setup')}>
+        <p className="text-xs text-muted-foreground">
+          Encrypt the first message normally. The key and nonce are fixed for this demonstration.
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div><Label className="text-xs">Key (32 hex)</Label><Input value={keyHex} onChange={e => setKeyHex(e.target.value)} className="font-mono text-xs" /></div>
           <div><Label className="text-xs">IV/Nonce (24 hex)</Label><Input value={ivHex} onChange={e => setIvHex(e.target.value)} className="font-mono text-xs" /></div>
@@ -108,6 +118,9 @@ export function GCMNonceReuse() {
       </StepCard>
 
       <StepCard step={3} title="Attack: XOR Ciphertexts" status={getStatus('encrypt2')}>
+        <p className="text-xs text-muted-foreground">
+          Since both ciphertexts were XORed with the same keystream, XORing them cancels the keystream and reveals the XOR of the two plaintexts.
+        </p>
         <Button onClick={doAttack} className="w-full">XOR Ciphertexts to Recover Plaintext Relationship</Button>
       </StepCard>
 

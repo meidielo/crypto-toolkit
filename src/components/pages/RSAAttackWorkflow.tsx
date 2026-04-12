@@ -74,6 +74,13 @@ export function RSAAttackWorkflow() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">RSA has several well-known attack vectors when parameters are chosen poorly. A small modulus, weak prime generation, or bad exponent choices can make the "hard" factoring problem trivially easy.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">{"Wiener's attack exploits small private exponent d. Fermat factoring works when p \u2248 q. Hastad's broadcast attack targets small public exponent e with the same message sent to multiple recipients. Common factor attacks find shared primes between different moduli using GCD. All of these bypass factoring entirely by exploiting mathematical shortcuts \u2014 which is why RSA parameter generation has strict requirements in practice."}</p>
+      </div>
+
       <StepCard step={1} title="Input: Public Key & Ciphertext" status={result ? 'complete' : 'active'}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div><Label className="text-xs">n (modulus)</Label><Input value={nStr} onChange={e => setNStr(e.target.value)} className="font-mono" /></div>

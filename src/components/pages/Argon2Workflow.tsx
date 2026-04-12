@@ -111,8 +111,16 @@ export function Argon2Workflow() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">Simple hash functions like SHA-256 and MD5 are too fast for password hashing — an attacker with GPUs or ASICs can test billions of candidate passwords per second, cracking most real-world passwords in minutes.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">Argon2 is deliberately slow and memory-hard. It fills a large memory array with pseudorandom data, then reads from data-dependent positions. The memory requirement makes GPU/ASIC attacks expensive: fast chips have limited per-core memory, so each parallel hash attempt needs its own large memory allocation. Argon2id (the hybrid variant) combines Argon2i (data-independent addressing, resistant to side-channel attacks) with Argon2d (data-dependent addressing, resistant to GPU/ASIC attacks).</p>
+      </div>
+
       {/* Parameters */}
       <StepCard step={1} title="Parameters" status="active">
+        <p className="text-xs text-muted-foreground">Choose a preset or tune parameters manually. Higher memory and iteration counts increase security but also increase computation time. The OWASP minimum (19 MB, 2 iterations) is the recommended baseline for password storage in 2024.</p>
         <div className="flex flex-wrap gap-1.5 mb-3">
           {(Object.entries(PRESETS) as [Preset, typeof PRESETS[Preset]][]).map(([key, cfg]) => (
             <Badge
@@ -234,6 +242,12 @@ export function Argon2Workflow() {
           </StepCard>
         </>
       )}
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>This demo runs Argon2id via WebAssembly in a Web Worker. WASM performance is close to native, but browser sandboxing and single-threaded workers mean the parallelism parameter does not actually use multiple CPU cores here — in production server code it would.</p>
+        <p>The salt must be unique per password (typically 16 random bytes). Using a fixed or short salt, as shown in this demo, would allow precomputation attacks. Never use a predictable salt in production.</p>
+        <p>Argon2 won the Password Hashing Competition in 2015, beating bcrypt and scrypt. Its main advantage over scrypt is resistance to time-memory tradeoff attacks: reducing memory usage in Argon2 forces a quadratic increase in computation time, whereas scrypt's penalty is less severe.</p>
+      </div>
     </div>
   );
 }

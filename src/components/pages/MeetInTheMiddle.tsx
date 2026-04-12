@@ -108,6 +108,13 @@ export function MeetInTheMiddle() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">Double encryption (encrypt twice with two different keys) seems like it should double the security. If each key is n bits, does encrypting with K1 then K2 give 2<sup>2n</sup> security?</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">No — the meet-in-the-middle attack reduces it to roughly 2 &times; 2<sup>n</sup>. Encrypt the plaintext with all possible K1 values, decrypt the ciphertext with all possible K2 values, and look for matches in the middle. This time-memory tradeoff is why Double-DES was never standardized: 2DES with 56-bit keys gives only ~2<sup>57</sup> security instead of the expected 2<sup>112</sup>. Triple-DES (3 keys, 2<sup>112</sup> effective security) was needed to meaningfully increase strength.</p>
+      </div>
+
       <Tabs defaultValue="explorer" className="w-full">
         <TabsList className="w-full flex">
           <TabsTrigger value="explorer">S-DES Explorer</TabsTrigger>
@@ -122,6 +129,7 @@ export function MeetInTheMiddle() {
               <CardDescription>Simplified DES: 8-bit block, 10-bit key, 2 Feistel rounds with S-boxes</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <p className="text-xs text-muted-foreground">Simplified DES uses 8-bit blocks and 10-bit keys — small enough that you can see every permutation, S-box lookup, and Feistel round. The same structural principles apply to full DES (64-bit block, 56-bit key).</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div>
                   <Label className="text-xs">{expMode === 'encrypt' ? 'Plaintext' : 'Ciphertext'} (0-255)</Label>
@@ -267,6 +275,13 @@ export function MeetInTheMiddle() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>This demo uses Simplified DES (8-bit block, 10-bit key) so the attack completes instantly. With full DES (56-bit key), the MITM attack requires storing 2<sup>56</sup> intermediate values (~512 PB of memory), which is why the attack is a time-memory tradeoff.</p>
+        <p>A single known plaintext-ciphertext pair often yields multiple (K1, K2) matches (false positives). A second known pair eliminates virtually all false positives, confirming the correct keys. This demo may show multiple matches for the same reason.</p>
+        <p>AES with 128-bit keys is immune to MITM on double encryption in practice: 2<sup>128</sup> table entries would require more storage than exists on Earth. Nevertheless, AES key sizes (128/192/256) were chosen with comfortable security margins against all known attacks.</p>
+      </div>
     </div>
   );
 }

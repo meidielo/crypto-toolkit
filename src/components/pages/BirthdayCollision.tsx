@@ -81,7 +81,15 @@ export function BirthdayCollision() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">Hash functions map infinite inputs to fixed-length outputs, so collisions (two inputs with the same hash) must exist. How many inputs do you need to try before two produce the same hash?</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">The birthday paradox: in a group of just 23 people, there is a 50% chance that two share a birthday (out of 365). Similarly, for an n-bit hash, you only need approximately 2<sup>n/2</sup> inputs (not 2<sup>n</sup>) to find a collision. This square-root relationship is why SHA-256 provides 128-bit collision resistance, and why SHA-1 (theoretically 80-bit collision resistance) was broken in practice at 2<sup>63</sup> operations.</p>
+      </div>
+
       <StepCard step={1} title="Configure & Search" status={result ? 'complete' : 'active'}>
+        <p className="text-xs text-muted-foreground">Choose how many bits of the SHA-256 output to keep. Fewer bits means a smaller output space and faster collisions — letting you see the birthday bound in action without waiting hours.</p>
         <div>
           <Label className="text-xs">Truncation (bits) — smaller = faster collision</Label>
           <Input value={truncBits} onChange={e => setTruncBits(e.target.value)} className="font-mono w-24" />
@@ -150,6 +158,13 @@ export function BirthdayCollision() {
           </p>
         </StepCard>
       )}
+
+      <div className="rounded-lg border bg-muted/30 p-4 text-xs text-muted-foreground space-y-2">
+        <p className="font-semibold text-foreground text-sm">Limitations & real-world context</p>
+        <p>This demo truncates SHA-256 output to make collisions findable in seconds. Real collision attacks on full hash functions require far more sophisticated techniques (e.g., differential path analysis for SHA-1, not brute-force birthday search).</p>
+        <p>The birthday bound assumes a perfectly random hash function. In practice, structural weaknesses can reduce the collision cost below 2<sup>n/2</sup> — this is exactly what happened to MD5 (broken in 2004) and SHA-1 (broken in 2017 at ~2<sup>63</sup> instead of the theoretical 2<sup>80</sup>).</p>
+        <p>Collision resistance is not the same as preimage resistance. Finding <em>any</em> two colliding inputs (birthday attack) is much easier than finding an input that matches a <em>specific</em> hash value (preimage attack, which still requires ~2<sup>n</sup> work).</p>
+      </div>
     </div>
   );
 }

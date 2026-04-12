@@ -113,7 +113,17 @@ export function CRTFaultAttack() {
         </CardHeader>
       </Card>
 
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
+        <p className="font-semibold">The problem</p>
+        <p className="text-muted-foreground">RSA implementations often use CRT optimization for faster signing (4x speedup). A single computational fault during CRT signing leaks the entire private key.</p>
+        <p className="font-semibold mt-3">The insight</p>
+        <p className="text-muted-foreground">RSA-CRT computes s_p = m^d mod p and s_q = m^d mod q separately, then combines via CRT. If s_p has a fault but s_q is correct, the faulty signature is wrong mod p but correct mod q. Computing gcd(s^e - m, n) yields q, factoring n instantly with a single signature and a single GCD.</p>
+      </div>
+
       <StepCard step={1} title="Setup: RSA-CRT Key" status={getStatus('setup')}>
+        <p className="text-xs text-muted-foreground">
+          Choose two primes p, q and a public exponent e. The CRT parameters dp = d mod (p-1) and dq = d mod (q-1) allow signing in each prime's field independently.
+        </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div><Label className="text-xs">p</Label><Input value={pStr} onChange={e => setPStr(e.target.value)} className="font-mono" /></div>
           <div><Label className="text-xs">q</Label><Input value={qStr} onChange={e => setQStr(e.target.value)} className="font-mono" /></div>
