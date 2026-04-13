@@ -9,7 +9,11 @@ interface NavItem {
   category: string;
 }
 
+// Order must match CATEGORIES in Home.tsx: Cryptography, Number Theory,
+// Workflows, Composition, Attacks, Advanced, Utilities. Items within each
+// category also match Home's order so the sidebar and home page are consistent.
 const NAV_ITEMS: NavItem[] = [
+  // — Cryptography —
   {
     id: 'ec-calculator',
     label: 'Elliptic Curves',
@@ -43,6 +47,7 @@ const NAV_ITEMS: NavItem[] = [
       </svg>
     ),
   },
+  // — Number Theory —
   {
     id: 'modular',
     label: 'Modular Arithmetic',
@@ -64,17 +69,7 @@ const NAV_ITEMS: NavItem[] = [
       </svg>
     ),
   },
-  {
-    id: 'converter',
-    label: 'Base & Encoding',
-    category: 'Utilities',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <polyline points="16 18 22 12 16 6" />
-        <polyline points="8 6 2 12 8 18" />
-      </svg>
-    ),
-  },
+  // — Workflows —
   {
     id: 'ecdsa',
     label: 'ECDSA Signing',
@@ -106,26 +101,6 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    id: 'rsa-attack',
-    label: 'RSA Attack',
-    category: 'Workflows',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-      </svg>
-    ),
-  },
-  {
-    id: 'substitution',
-    label: 'Substitution Analysis',
-    category: 'Workflows',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-      </svg>
-    ),
-  },
-  {
     id: 'diffie-hellman',
     label: 'Diffie-Hellman',
     category: 'Workflows',
@@ -146,35 +121,17 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    id: 'nonce-reuse',
-    label: 'Nonce Reuse Attack',
+    id: 'shamir',
+    label: 'Shamir Secret Sharing',
     category: 'Workflows',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+        <circle cx="12" cy="12" r="3" /><circle cx="19" cy="5" r="2" /><circle cx="5" cy="5" r="2" /><circle cx="19" cy="19" r="2" /><circle cx="5" cy="19" r="2" />
+        <path d="M12 9V5M15 12h4M12 15v4M9 12H5" />
       </svg>
     ),
   },
-  {
-    id: 'lwe',
-    label: 'Lattice (LWE)',
-    category: 'Advanced',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" />
-      </svg>
-    ),
-  },
-  {
-    id: 'schnorr',
-    label: 'Schnorr ZKP',
-    category: 'Advanced',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
-      </svg>
-    ),
-  },
+  // — Composition —
   {
     id: 'aes-gcm',
     label: 'AES-GCM',
@@ -202,6 +159,37 @@ const NAV_ITEMS: NavItem[] = [
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" />
+      </svg>
+    ),
+  },
+  {
+    id: 'hmac',
+    label: 'HMAC Walkthrough',
+    category: 'Composition',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" />
+      </svg>
+    ),
+  },
+  // — Attacks —
+  {
+    id: 'nonce-reuse',
+    label: 'ECDSA Nonce Reuse',
+    category: 'Attacks',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+    ),
+  },
+  {
+    id: 'gcm-nonce',
+    label: 'GCM Nonce Reuse',
+    category: 'Attacks',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <path d="M12 9v4M12 17h.01M5.07 19H19a2 2 0 001.75-2.75L13.75 4a2 2 0 00-3.5 0L3.32 16.25A2 2 0 005.07 19z" />
       </svg>
     ),
   },
@@ -236,33 +224,12 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    id: 'shamir',
-    label: 'Shamir Secret Sharing',
-    category: 'Workflows',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <circle cx="12" cy="12" r="3" /><circle cx="19" cy="5" r="2" /><circle cx="5" cy="5" r="2" /><circle cx="19" cy="19" r="2" /><circle cx="5" cy="19" r="2" />
-        <path d="M12 9V5M15 12h4M12 15v4M9 12H5" />
-      </svg>
-    ),
-  },
-  {
-    id: 'gcm-nonce',
-    label: 'GCM Nonce Reuse',
+    id: 'rsa-attack',
+    label: 'RSA Factoring',
     category: 'Attacks',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <path d="M12 9v4M12 17h.01M5.07 19H19a2 2 0 001.75-2.75L13.75 4a2 2 0 00-3.5 0L3.32 16.25A2 2 0 005.07 19z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'dh-subgroup',
-    label: 'DH Subgroup Attack',
-    category: 'Attacks',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <circle cx="12" cy="12" r="10" /><path d="M8 12h8M12 8v8" />
+        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
       </svg>
     ),
   },
@@ -273,46 +240,6 @@ const NAV_ITEMS: NavItem[] = [
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
         <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-      </svg>
-    ),
-  },
-  {
-    id: 'hmac',
-    label: 'HMAC Walkthrough',
-    category: 'Composition',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" />
-      </svg>
-    ),
-  },
-  {
-    id: 'mitm',
-    label: 'Meet-in-the-Middle',
-    category: 'Attacks',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <path d="M5 3v18M19 3v18M5 12h14" /><circle cx="12" cy="12" r="2" />
-      </svg>
-    ),
-  },
-  {
-    id: 'ecb-penguin',
-    label: 'ECB Penguin',
-    category: 'Attacks',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
-      </svg>
-    ),
-  },
-  {
-    id: 'curve-plot',
-    label: 'EC Curve Plot',
-    category: 'Utilities',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <circle cx="7.5" cy="7.5" r="1.5" /><circle cx="16.5" cy="7.5" r="1.5" /><circle cx="12" cy="16" r="1.5" /><circle cx="4" cy="14" r="1.5" /><circle cx="20" cy="14" r="1.5" />
       </svg>
     ),
   },
@@ -347,12 +274,73 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
+    id: 'dh-subgroup',
+    label: 'DH Subgroup',
+    category: 'Attacks',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <circle cx="12" cy="12" r="10" /><path d="M8 12h8M12 8v8" />
+      </svg>
+    ),
+  },
+  {
+    id: 'ecb-penguin',
+    label: 'ECB Penguin',
+    category: 'Attacks',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
+      </svg>
+    ),
+  },
+  {
+    id: 'mitm',
+    label: 'Meet-in-the-Middle',
+    category: 'Attacks',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <path d="M5 3v18M19 3v18M5 12h14" /><circle cx="12" cy="12" r="2" />
+      </svg>
+    ),
+  },
+  // — Advanced —
+  {
+    id: 'lwe',
+    label: 'Lattice (LWE)',
+    category: 'Advanced',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" />
+      </svg>
+    ),
+  },
+  {
+    id: 'schnorr',
+    label: 'Schnorr ZKP',
+    category: 'Advanced',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+      </svg>
+    ),
+  },
+  {
     id: 'birthday',
     label: 'Birthday Collision',
     category: 'Advanced',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
         <circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
+      </svg>
+    ),
+  },
+  {
+    id: 'constant-time',
+    label: 'Constant-Time',
+    category: 'Advanced',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
       </svg>
     ),
   },
@@ -366,13 +354,35 @@ const NAV_ITEMS: NavItem[] = [
       </svg>
     ),
   },
+  // — Utilities —
   {
-    id: 'constant-time',
-    label: 'Constant-Time',
-    category: 'Advanced',
+    id: 'converter',
+    label: 'Base & Encoding',
+    category: 'Utilities',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+        <polyline points="16 18 22 12 16 6" />
+        <polyline points="8 6 2 12 8 18" />
+      </svg>
+    ),
+  },
+  {
+    id: 'substitution',
+    label: 'Substitution Analysis',
+    category: 'Utilities',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'curve-plot',
+    label: 'EC Curve Plot',
+    category: 'Utilities',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <circle cx="7.5" cy="7.5" r="1.5" /><circle cx="16.5" cy="7.5" r="1.5" /><circle cx="12" cy="16" r="1.5" /><circle cx="4" cy="14" r="1.5" /><circle cx="20" cy="14" r="1.5" />
       </svg>
     ),
   },
