@@ -1,6 +1,6 @@
 import type { Page } from '@/App';
 import { cn } from '@/lib/utils';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface NavItem {
   id: Page;
@@ -425,17 +425,22 @@ export function Sidebar({ currentPage, onPageChange, open, onToggle, isMobile }:
     return initial;
   });
 
-  // Derive the actually-rendered collapsed set: the persisted user preference
-  // with the active category forcibly expanded. Using a derived value rather
-  // than a setState-in-effect keeps the component's effect-free and dodges
-  // the react-hooks/set-state-in-effect lint rule (this is "state sync from
-  // state", which React prefers you compute during render).
-  const renderedCollapsed = useMemo(() => {
-    if (!activeCategory || !collapsed.has(activeCategory)) return collapsed;
-    const next = new Set(collapsed);
-    next.delete(activeCategory);
-    return next;
-  }, [collapsed, activeCategory]);
+  // Auto-expand the active category when the user navigates to a new page,
+  // but don't forcibly keep it open — the user can still collapse it manually.
+  useEffect(() => {
+    if (activeCategory && collapsed.has(activeCategory)) {
+      const next = new Set(collapsed);
+      next.delete(activeCategory);
+      try {
+        localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(Array.from(next)));
+      } catch { /* ignore quota errors */ }
+      setCollapsed(next);
+    }
+    // Only run when the active category changes (page navigation), not on every
+    // collapsed-set change — otherwise collapsing the active category would
+    // immediately re-expand it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCategory]);
 
   function toggleCategory(cat: string) {
     setCollapsed(prev => {
@@ -495,7 +500,7 @@ export function Sidebar({ currentPage, onPageChange, open, onToggle, isMobile }:
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
         {categories.map(cat => {
           const items = NAV_ITEMS.filter(i => i.category === cat);
-          const isCollapsed = renderedCollapsed.has(cat);
+          const isCollapsed = collapsed.has(cat);
           const hasActive = items.some(i => i.id === currentPage);
 
           return (
