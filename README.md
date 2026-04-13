@@ -1,6 +1,6 @@
 # CryptoToolkit
 
-An interactive educational platform for learning cryptography by doing — 37 modules covering how crypto works, why it works, and how it breaks. Every attack is real: algorithms run to completion and recover secrets through the actual mathematical exploit, not pre-computed simulations.
+An interactive educational platform for learning cryptography by doing — 36 modules covering how crypto works, why it works, and how it breaks. Every attack is real: algorithms run to completion and recover secrets through the actual mathematical exploit, not pre-computed simulations.
 
 All computation runs client-side using BigInt arithmetic with `crypto.getRandomValues()` — no server, no tracking, no data leaves your browser.
 
@@ -12,7 +12,7 @@ Every time I sat down to do a cryptography assignment, I'd end up with a dozen b
 
 **Live:** [ctool.mdpstudio.com.au](https://ctool.mdpstudio.com.au)
 
-## Modules (37 pages)
+## Modules (36 pages)
 
 ### Attacks (12 pages)
 - **Bleichenbacher** — PKCS#1 v1.5 padding oracle with genuine interval narrowing (Steps 2a/2b/2c/3/4). Typically converges in ~10K oracle queries.
@@ -149,7 +149,7 @@ Deployed on Netlify (`public/_headers`) and Vercel (`vercel.json`) with matching
 | Header | Value | Notes |
 |--------|-------|-------|
 | Content-Security-Policy | `script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; worker-src 'self'; frame-ancestors 'none'` | `unsafe-inline` for Tailwind v4 + React `style={}`; `wasm-unsafe-eval` for hash-wasm's `WebAssembly.compile()` (Argon2id) |
-| Strict-Transport-Security | `max-age=63072000; includeSubDomains; preload` | 2-year HSTS with preload |
+| Strict-Transport-Security | `max-age=31536000` | 1-year HSTS, apex only (no preload — see SECURITY.md) |
 | Referrer-Policy | `no-referrer` | |
 | Permissions-Policy | `camera=(), microphone=(), geolocation=()` | |
 | Cross-Origin-Opener-Policy | `same-origin` | |

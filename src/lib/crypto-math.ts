@@ -217,14 +217,16 @@ export function factorizeToString(n: bigint): string {
 // Generate a random prime of the given bit length. Draws a fresh CSPRNG
 // candidate each iteration and tests it independently, per FIPS 186-5
 // §B.3.3. This avoids the bias of nextPrime(random), which over-represents
-// primes following large composite gaps.
+// primes following large composite gaps. Capped at 10 000 attempts to
+// prevent infinite loops if the primality test or bit size is misconfigured.
 export function generateRandomPrime(bits: number): bigint {
   const bytes = Math.ceil(bits / 8);
   const arr = new Uint8Array(bytes);
   const mask = (1n << BigInt(bits)) - 1n;
   const highBit = 1n << BigInt(bits - 1);
+  const MAX_ATTEMPTS = 10_000;
 
-  for (;;) {
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     crypto.getRandomValues(arr);
     let n = 0n;
     for (const byte of arr) {
@@ -235,6 +237,7 @@ export function generateRandomPrime(bits: number): bigint {
     n |= 1n;          // ensure odd
     if (isPrime(n)) return n;
   }
+  throw new Error(`generateRandomPrime: no prime found in ${MAX_ATTEMPTS} attempts for ${bits}-bit candidate`);
 }
 
 export interface RSAKeyPair {
