@@ -8,7 +8,7 @@ Known non-production characteristics:
 - BigInt arithmetic is not constant-time (timing leaks proportional to operand size)
 - Key material is not zeroized after use
 - No formal verification or side-channel analysis has been performed
-- `generateRandomPrime` uses `nextPrime(random)` which biases toward primes following large gaps (documented with FIPS 186-5 §B.3.3 reference)
+- `generateRandomPrime` draws fresh CSPRNG candidates per iteration (FIPS 186-5 §B.3.3 compliant), but uses software Miller-Rabin rather than hardware-accelerated primality testing
 - GHASH length encoding uses 32-bit JS bitwise operations (correct for inputs < 268MB)
 
 ## Reporting a Vulnerability
@@ -21,7 +21,7 @@ If you find a correctness bug in a cryptographic implementation (wrong output fo
 
 ## Audit History
 
-This codebase has been through 5 internal audit sweeps covering:
+This codebase has been through 6 internal audit sweeps covering:
 - FIPS 197 / SP 800-38D test vector verification (AES, GCM)
 - FIPS 180-4 test vector verification (SHA-256)
 - RFC 4231 test vector verification (HMAC-SHA256)

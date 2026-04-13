@@ -6,11 +6,17 @@
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Resource-Policy: same-origin
   # style-src retains 'unsafe-inline' because several pages (CurvePlot, ShiftRowsAnimation,
   # progress bars) compute pixel positions at runtime via React style={{}} props. CSP2's
   # 'unsafe-hashes' would need build-time hashes for every literal style string — impossible
   # with runtime-computed values. A nonce-based pipeline is tracked as future work.
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; worker-src 'self'; connect-src 'self'; img-src 'self' data:; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; report-uri /csp-report
+  #
+  # script-src includes 'wasm-unsafe-eval' because hash-wasm (Argon2id) calls
+  # WebAssembly.compile() on base64-decoded WASM bytes at runtime. Chrome CSP3
+  # blocks dynamic WASM compilation without this directive. 'wasm-unsafe-eval'
+  # only permits WebAssembly.compile/instantiate — it does NOT enable eval().
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; worker-src 'self'; connect-src 'self'; img-src 'self' data:; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
 /index.html
   Cache-Control: no-cache

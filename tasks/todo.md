@@ -1,6 +1,6 @@
 # CryptoToolkit - Task Tracker
 
-## Current State: 37 pages, 89 tests, code-split, deployed
+## Current State: 37 pages, 95 tests, code-split, deployed
 
 ## Completed Phases
 

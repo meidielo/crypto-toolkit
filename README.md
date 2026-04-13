@@ -4,6 +4,10 @@ An interactive educational platform for learning cryptography by doing — 37 mo
 
 All computation runs client-side using BigInt arithmetic with `crypto.getRandomValues()` — no server, no tracking, no data leaves your browser.
 
+## Why I built this
+
+Every time I sat down to do a cryptography assignment, I'd end up with a dozen browser tabs open — one calculator for modular arithmetic, another for EC point addition, a third for RSA key generation, and so on. And the tutorial worked examples would skip steps ("it follows that..."), leaving me to figure out what happened in between. I built CryptoToolkit to put everything in one place, showing every intermediate step so you can actually follow the math from start to finish.
+
 > **This is a learning tool, not a production library.** These implementations are not constant-time, do not zeroize key material, and have not been formally verified. BigInt operations in JavaScript leak timing information proportional to operand size. For production use, reach for [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API), [libsodium](https://doc.libsodium.org/), or [Google Tink](https://developers.google.com/tink).
 
 **Live:** [ctool.mdpstudio.com.au](https://ctool.mdpstudio.com.au)
@@ -134,7 +138,7 @@ src/
 
 **Real attacks, not simulations.** Every attack page computes the actual exploit — the recovered plaintext is the output of the algorithm, not a pre-known value revealed with animation. This is enforced as a project rule: any demo that simulates rather than computes must be labeled explicitly. The distinction matters educationally because students need to see that these attacks are *computationally feasible*, not just theoretically possible.
 
-**BigInt arithmetic with documented limitations.** GHASH length encoding uses 32-bit JS bitwise ops (correct for inputs < 268MB, documented in source). `generateRandomPrime` uses `nextPrime(random)` which biases toward primes after large gaps (documented with FIPS 186-5 §B.3.3 reference). Miller-Rabin uses 12 fixed witnesses + CSPRNG extras above the deterministic threshold of 3.3×10²⁴. These are deliberate scope boundaries for an educational tool, not oversights — and each one has a source comment explaining the tradeoff.
+**BigInt arithmetic with documented limitations.** GHASH length encoding uses 32-bit JS bitwise ops (correct for inputs < 268MB, documented in source). `generateRandomPrime` draws fresh CSPRNG candidates per iteration (FIPS 186-5 §B.3.3 compliant). Miller-Rabin uses 12 fixed witnesses + CSPRNG extras above the deterministic threshold of 3.3×10²⁴. BigInt operations are not constant-time — timing leaks are proportional to operand size (explicitly called out on the Constant-Time Comparison page). These are deliberate scope boundaries for an educational tool, not oversights — and each one has a source comment explaining the tradeoff.
 
 **RSA keygen in a Web Worker.** Generating 2048-bit keys requires iterative primality testing that blocks the main thread for 1–5 seconds. Moved to `crypto.worker.ts` with a stale-response guard (`genIdRef`) so rapid re-generation doesn't apply an outdated result.
 
@@ -144,10 +148,13 @@ Deployed on Netlify (`public/_headers`) and Vercel (`vercel.json`) with matching
 
 | Header | Value | Notes |
 |--------|-------|-------|
-| Content-Security-Policy | `script-src 'self'; style-src 'self' 'unsafe-inline'; worker-src 'self'; frame-ancestors 'none'` | `unsafe-inline` required for Tailwind v4 runtime styles and React `style={}` props. No `wasm-unsafe-eval` needed — hash-wasm embeds WASM as base64. |
+| Content-Security-Policy | `script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; worker-src 'self'; frame-ancestors 'none'` | `unsafe-inline` for Tailwind v4 + React `style={}`; `wasm-unsafe-eval` for hash-wasm's `WebAssembly.compile()` (Argon2id) |
 | Strict-Transport-Security | `max-age=63072000; includeSubDomains; preload` | 2-year HSTS with preload |
+| Referrer-Policy | `no-referrer` | |
+| Permissions-Policy | `camera=(), microphone=(), geolocation=()` | |
 | Cross-Origin-Opener-Policy | `same-origin` | |
 | Cross-Origin-Embedder-Policy | `require-corp` | |
+| Cross-Origin-Resource-Policy | `same-origin` | |
 | X-Frame-Options | `DENY` | |
 | X-Content-Type-Options | `nosniff` | |
 | Cache-Control | `no-cache` (HTML), `immutable` (hashed assets) | |
