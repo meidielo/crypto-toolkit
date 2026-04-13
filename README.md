@@ -4,10 +4,6 @@ An interactive educational platform for learning cryptography by doing — 36 mo
 
 All computation runs client-side using BigInt arithmetic with `crypto.getRandomValues()` — no server, no tracking, no data leaves your browser.
 
-## Why I built this
-
-Every time I sat down to do a cryptography assignment, I'd end up with a dozen browser tabs open — one calculator for modular arithmetic, another for EC point addition, a third for RSA key generation, and so on. And the tutorial worked examples would skip steps ("it follows that..."), leaving me to figure out what happened in between. I built CryptoToolkit to put everything in one place, showing every intermediate step so you can actually follow the math from start to finish.
-
 > **This is a learning tool, not a production library.** These implementations are not constant-time, do not zeroize key material, and have not been formally verified. BigInt operations in JavaScript leak timing information proportional to operand size. For production use, reach for [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API), [libsodium](https://doc.libsodium.org/), or [Google Tink](https://developers.google.com/tink).
 
 **Live:** [ctool.mdpstudio.com.au](https://ctool.mdpstudio.com.au)
@@ -158,6 +154,10 @@ Deployed on Netlify (`public/_headers`) and Vercel (`vercel.json`) with matching
 | X-Frame-Options | `DENY` | |
 | X-Content-Type-Options | `nosniff` | |
 | Cache-Control | `no-cache` (HTML), `immutable` (hashed assets) | |
+
+## Motivation
+
+Every cryptography assignment, I'd have half a dozen calculators open in different browser tabs, and tutorials would skip the calculation between the input and the answer. CryptoToolkit is the tool I wanted when I was learning: one place where the math is visible at every step, and where the attacks actually run.
 
 ## Further Reading
 
