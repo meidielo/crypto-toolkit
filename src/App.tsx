@@ -1,5 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { Card, CardContent } from '@/components/ui/card';
 import { Sidebar } from '@/components/Sidebar';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SecurityBanner } from '@/components/SecurityBanner';
@@ -198,6 +199,42 @@ function pageFromHash(): Page {
   return (VALID_PAGES.has(raw) ? raw : 'home') as Page;
 }
 
+function ProjectFeedback({ page }: { page: Page }) {
+  const title = PAGE_TITLES[page];
+  const url = page === 'home'
+    ? 'https://ctool.mdpstudio.com.au'
+    : `https://ctool.mdpstudio.com.au/#/${page}`;
+  const subject = encodeURIComponent(`Feedback: CryptoToolkit - ${title}`);
+  const body = encodeURIComponent(
+    `Project: CryptoToolkit\nModule/page: ${title}\nLink: ${url}\nWhat happened:\nWhat you expected:\n\nPlease do not include passwords, API keys, private data, client data, or payment details.`
+  );
+
+  return (
+    <Card className="mt-6 border-primary/10 bg-primary/5">
+      <CardContent className="p-4 md:p-5">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="min-w-0">
+            <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-primary mb-2">Project feedback</div>
+            <h2 className="text-base font-semibold">Found a bug, confusing step, or improvement idea?</h2>
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+              Send the module name, what happened, and what you expected so I can reproduce it cleanly.
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground/70">
+              Do not include passwords, API keys, private data, client data, or payment details.
+            </p>
+          </div>
+          <a
+            className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/85"
+            href={`mailto:meidie@mdpstudio.com.au?subject=${subject}&body=${body}`}
+          >
+            Send feedback
+          </a>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function App() {
   const [page, setPageState] = useState<Page>(() => pageFromHash());
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -272,6 +309,7 @@ export default function App() {
                 </Suspense>
               )}
             </ErrorBoundary>
+            <ProjectFeedback page={page} />
           </div>
         </main>
         <Sidebar
